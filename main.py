@@ -1,6 +1,7 @@
 from tkinter import messagebox
 import PySimpleGUI as sg
 import pandas as pd
+from openpyxl import load_workbook
 
 def listaProdutos():
     my_list=[]
@@ -21,12 +22,15 @@ def verificarSheet(num):
     if num == 0: #Problema em Estoque
         dC = {'Produto': [], 'Marca': [], 'Quantidade': [], 'Valor Total Gasto': [], 'Valor Total': []}
         tabela_compras = pd.DataFrame.from_dict(dC)
+        print('Estoque')
     if num == 1: #Problema em Vendas
         dV = {'Produto': []}
         tabela_vendas = pd.DataFrame.from_dict(dV)
+        print('Vendas')
     if num == 2: #Problema em Produtos
         dP = {'Produto': [], 'Marca': [], 'Método de Venda': [], 'Valor_Método': [], 'Método_Compra': []}
         tabela_produtos = pd.DataFrame.from_dict(dP)
+        print('Produtos')
 
 def conferir(num):
     try:
@@ -41,7 +45,7 @@ def conferir(num):
         conferir(num+1)
 
 #CodigoPandas
-path = r"Compras.xlsx"
+path = "Arquivos/Compras.xlsx"
 tabela_vendas= pd.DataFrame()
 tabela_compras=pd.DataFrame()
 tabela_produtos=pd.DataFrame()
@@ -52,9 +56,7 @@ try:
     tabela_vendas = dict_df.get('Vendas')
     tabela_produtos =dict_df.get('Produtos')
     tabela_compras = dict_df.get('Estoque')
-    print(tabela_vendas)
-    print(tabela_compras)
-    print(tabela_produtos)
+    print("Arquivo Encontrado")
 except FileNotFoundError as fnfe:
     dV= {'Produto':[]}
     dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor Total Gasto':[], 'Valor Total':[]}
@@ -62,10 +64,9 @@ except FileNotFoundError as fnfe:
     tabela_vendas=pd.DataFrame(data=dV)
     tabela_compras=pd.DataFrame(data=dC)
     tabela_produtos=pd.DataFrame(data=dP)
-    print(tabela_vendas)
-    print(tabela_compras)
-    print(tabela_produtos)
+    print("Arquivo não lido, criando um dataframe substituto")
 except ValueError as ve:
+    print("Arquivo encontrado, porém sem todas sheets")
     conferir(0)
 
 #Código
@@ -73,7 +74,6 @@ metodosdeVenda = []
 produtosAdicionados = []
 valorTotal = 0
 produtosCadastrados= listaProdutos()
-print(tabelas)
 
 #Layout
 def janelaInicial():
@@ -190,15 +190,21 @@ while True:
                                     'Método_Venda': valores["metodoVenda"],
                                     'Método_Compra': valores["metodoCompra"],
                                     'Valor_Método': valores["valorProduto"]}
-                        print(new_rowP)
                         tabela_produtos = tabela_produtos.append(new_rowP, ignore_index=True)
-                        tabela_produtos.to_excel(path, index=False, sheet_name='Produtos')
+                        with pd.ExcelWriter(path) as writer:
+                            tabela_produtos.to_excel(writer, sheet_name='Produtos')
+                            tabela_compras.to_excel(writer, sheet_name='Estoque')
+                            tabela_produtos.to_excel(writer, sheet_name='Vendas')
+                        # writer = pd.ExcelWriter(path, engine='openpyxl')
+                        # writer.book = load_workbook(path)
+                        # tabela_produtos.to_excel(writer, index=False, sheet_name='Produtos')
+                        # writer.close()
                         janela3.hide()
                         produtosCadastrados = listaProdutos()
                         janela2['comboProdutos'].Update(values=produtosCadastrados)
                         janela2.un_hide()
                     except ValueError as ve:
-                        messagebox.showwarning("Erro ao Cadastrar", 'O campo Valor do Produto apenas aceita Números')
+                        messagebox.showwarning("Erro ao Cadastrar", 'O campo Valor do Produto apenas aceita Números '+str(ve))
             else:
                 messagebox.showwarning("Preencha Todos os campos", 'Preencha o campo de Método de Compra')
         else:
@@ -207,14 +213,9 @@ while True:
     # Sair da janela Cadastrar Produto e Voltar para Adicionar Produto
     if janela == janela3 and eventos == sg.WINDOW_CLOSED:
         janela3.hide()
-        produtosAdicionados.clear()
         janela2["-TB-"].Update(produtosAdicionados)
         janela2['valorTotal'].Update("")
         janela2.un_hide()
-
-    #Fechar Programa
-    if janela == janela1 and eventos == sg.WINDOW_CLOSED or eventos == 'Sair':
-        break
 
     #Ir para janela Adicionar Produto
     if janela == janela1 and eventos == 'Adicionar Produto':
@@ -228,4 +229,8 @@ while True:
     if janela == janela2 and eventos == sg.WINDOW_CLOSED:
         janela2.hide()
         janela1.un_hide()
+
+    #Fechar Programa
+    if janela == janela1 and eventos == sg.WINDOW_CLOSED or eventos == 'Sair':
+        break
 janela.close()
