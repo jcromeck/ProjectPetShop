@@ -1,7 +1,6 @@
 from tkinter import messagebox
 import PySimpleGUI as sg
 import pandas as pd
-from openpyxl import load_workbook
 
 def listaProdutos():
     my_list=[]
@@ -57,6 +56,8 @@ try:
     tabela_produtos =dict_df.get('Produtos')
     tabela_compras = dict_df.get('Estoque')
     print("Arquivo Encontrado")
+    tabelas = [tabela_compras, tabela_vendas, tabela_produtos]
+    print(str(tabelas[0])+"\n"+str(tabelas[1])+"\n"+str(tabelas[2]))
 except FileNotFoundError as fnfe:
     dV= {'Produto':[]}
     dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor Total Gasto':[], 'Valor Total':[]}
@@ -136,16 +137,16 @@ while True:
                         janela["valorTotal"].Update(str(valorTotal)+',00 R$')
                         janela["quantidadeAdicionada"].Update("")
                         janela["comboProdutos"].Update("")
-                        new_rowC = {'Tipo de Produto': produto[0],
+                        new_rowC = {'Produto': produto[0],
                                     'Marca': produto[1],
                                     'Quantidade': produto[2],
-                                    'Valor Total Gasto': produto[3]}
+                                    'Valor Total Gasto': produto[4]}
                         #tabela_compras["Valor Total"].ffill()
-                        tabela_compras = tabela_compras.append(new_rowC,ignore_index=True)
-                        tabela_compras.to_excel(path, index=False, sheet_name='Estoque')
-
-
-
+                        tabela_compras = tabela_compras.append(new_rowC, ignore_index=True)
+                        with pd.ExcelWriter(path) as writer:
+                            tabela_produtos.to_excel(writer, sheet_name='Produtos',index=False)
+                            tabela_compras.to_excel(writer, sheet_name='Estoque',index=False)
+                            tabela_vendas.to_excel(writer, sheet_name='Vendas',index=False)
                     else:
                         messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                 except ValueError as ve:
@@ -194,11 +195,7 @@ while True:
                         with pd.ExcelWriter(path) as writer:
                             tabela_produtos.to_excel(writer, sheet_name='Produtos')
                             tabela_compras.to_excel(writer, sheet_name='Estoque')
-                            tabela_produtos.to_excel(writer, sheet_name='Vendas')
-                        # writer = pd.ExcelWriter(path, engine='openpyxl')
-                        # writer.book = load_workbook(path)
-                        # tabela_produtos.to_excel(writer, index=False, sheet_name='Produtos')
-                        # writer.close()
+                            tabela_vendas.to_excel(writer, sheet_name='Vendas')
                         janela3.hide()
                         produtosCadastrados = listaProdutos()
                         janela2['comboProdutos'].Update(values=produtosCadastrados)
