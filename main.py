@@ -17,6 +17,12 @@ def listaProdutos1(idx, quantidade):
     y= my_list[int(idx)-1].split("-")
     return y
 
+def listaMetodos():
+    my_list = []
+    for index, rows in tabela_metodos.iterrows():
+        my_list.append(rows.Métodos)
+    return my_list
+
 def verificarSheet(num):
     if num == 0: #Problema em Estoque
         dC = {'Produto': [], 'Marca': [], 'Quantidade': [], 'Valor Total Gasto': [], 'Valor Total': []}
@@ -30,14 +36,18 @@ def verificarSheet(num):
         dP = {'Produto': [], 'Marca': [], 'Método de Venda': [], 'Valor_Método': [], 'Método_Compra': []}
         tabela_produtos = pd.DataFrame.from_dict(dP)
         print('Produtos')
+    if num == 3: #Problema em Métodos
+        dM = {'Métodos':[]}
+        tabela_metodos = pd.DataFrame.from_dict(dM)
+        print('Métodos')
 
 def conferir(num):
     try:
-        sheet_nameS=['Estoque','Vendas','Produtos']
-        if num < 3:
+        sheet_nameS=['Estoque','Vendas','Produtos','Métodos']
+        if num < 4:
             dict_df = pd.read_excel(path, sheet_name=sheet_nameS[num])
             tabelas[num]=dict_df.get(sheet_nameS)
-        if num < 3:
+        if num < 4:
             conferir(num+1)
     except ValueError as ve1:
         verificarSheet(num)
@@ -48,30 +58,34 @@ path = "Arquivos/Compras.xlsx"
 tabela_vendas= pd.DataFrame()
 tabela_compras=pd.DataFrame()
 tabela_produtos=pd.DataFrame()
-tabelas=[tabela_compras,tabela_vendas,tabela_produtos]
+tabela_metodos=pd.DataFrame()
+tabelas=[tabela_compras,tabela_vendas,tabela_produtos,tabela_metodos]
 
 try:
-    dict_df = pd.read_excel(path, sheet_name=['Produtos', 'Estoque', 'Vendas'])
+    dict_df = pd.read_excel(path, sheet_name=['Produtos', 'Estoque', 'Vendas','Métodos'])
     tabela_vendas = dict_df.get('Vendas')
     tabela_produtos =dict_df.get('Produtos')
     tabela_compras = dict_df.get('Estoque')
+    tabela_metodos = dict_df.get('Métodos')
     print("Arquivo Encontrado")
-    tabelas = [tabela_compras, tabela_vendas, tabela_produtos]
-    print(str(tabelas[0])+"\n"+str(tabelas[1])+"\n"+str(tabelas[2]))
+    tabelas = [tabela_compras, tabela_vendas, tabela_produtos, tabela_metodos]
+    print(str(tabelas[0])+"\n"+str(tabelas[1])+"\n"+str(tabelas[2])+"\n"+str(tabelas[3]))
 except FileNotFoundError as fnfe:
     dV= {'Produto':[]}
     dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor Total Gasto':[], 'Valor Total':[]}
     dP= {'Produto':[], 'Marca':[], 'Método de Venda':[], 'Valor_Método':[], 'Método_Compra':[]}
+    dM= {'Métodos':[]}
     tabela_vendas=pd.DataFrame(data=dV)
     tabela_compras=pd.DataFrame(data=dC)
     tabela_produtos=pd.DataFrame(data=dP)
+    tabela_metodos=pd.DataFrame(data=dM)
     print("Arquivo não lido, criando um dataframe substituto")
 except ValueError as ve:
     print("Arquivo encontrado, porém sem todas sheets")
     conferir(0)
 
 #Código
-metodosdeVenda = []
+metodosdeVenda = listaMetodos()
 produtosAdicionados = []
 valorTotal = 0
 produtosCadastrados= listaProdutos()
@@ -113,14 +127,27 @@ def janelaAdicionar():
     ]
     return sg.Window('Adicionar Produtos', layout= layout, finalize=True)
 
+def janelaVender():
+    sg.theme('DarkBlue')
+    layout= [
+        [sg.Text("Vender Produto")],
+        [sg.Combo(["pedigree", "Shampoo"], key="tiposProdutos"), sg.Table(values=produtosAdicionados,headings=['Produto','Marca','Quant','ValorUn','ValorTotal'],size=(40,15), key=('tV_produtos'))],
+        [sg.Combo(metodosdeVenda,key="metodoVendacP")],
+        [sg.InputText(key="QuantidadeItemVenda")],
+        [sg.Checkbox("Frete", default=False), sg.Checkbox("Sorteio", default=False)],
+        [sg.InputText(key="InputFrete", visible=False)],
+        [sg.Button("+", key="ContinuarVenda"), sg.Button('Finalizar Venda',key="FinalizarVenda")]
+    ]
+    return sg.Window('Vender Produtos', layout=layout, finalize=True)
+
 #Janela
-janela1, janela2, janela3= janelaInicial(), None, None
+janela1, janela2, janela3, janela4= janelaInicial(), None, None, None
 
 #Ler os eventos
 while True:
     janela, eventos, valores = sg.read_all_windows()
 
-    #Adicionar Produto
+    #Comprar Produto
     if janela == janela2 and eventos == 'continuarCompra':
         atual = valores['comboProdutos']
         if atual in produtosCadastrados:
@@ -147,6 +174,7 @@ while True:
                             tabela_produtos.to_excel(writer, sheet_name='Produtos',index=False)
                             tabela_compras.to_excel(writer, sheet_name='Estoque',index=False)
                             tabela_vendas.to_excel(writer, sheet_name='Vendas',index=False)
+                            tabela_metodos.to_excel(writer, sheet_name='Métodos')
                     else:
                         messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                 except ValueError as ve:
@@ -161,7 +189,7 @@ while True:
         janela3 = janelaCadastro()
         janela2.hide()
 
-    # Adicionar Método de Venda
+    # Mudar Visibilidade Metodo Venda
     if janela == janela3 and eventos == 'buttonMetodoVenda':
         janela["novoMetodoVendaInput"].Update(visible=True)
         janela["novoMetodoVenda"].Update(visible=True)
@@ -169,13 +197,20 @@ while True:
     # Confirmar novo Método de Venda
     if janela == janela3 and eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
         metodosdeVenda.append(valores['novoMetodoVendaInput'])
+        new_rowM = {'Métodos': valores["novoMetodoVendaInput"]}
+        tabela_metodos = tabela_metodos.append(new_rowM, ignore_index=True)
+        with pd.ExcelWriter(path) as writer:
+            tabela_produtos.to_excel(writer, sheet_name='Produtos')
+            tabela_compras.to_excel(writer, sheet_name='Estoque')
+            tabela_vendas.to_excel(writer, sheet_name='Vendas')
+            tabela_metodos.to_excel(writer, sheet_name='Métodos')
         valores["novoMetodoVendaInput"] = ""
         janela["novoMetodoVendaInput"].Update(visible=False)
         janela["novoMetodoVenda"].Update(visible=False)
         janela['metodoVenda'].Update(values=metodosdeVenda)
         janela['metodoCompra'].Update(values=metodosdeVenda)
 
-    # Confirmar novo Produto
+    # Adicionar Produto Cadastro
     if janela == janela3 and eventos == 'EfetuarCadastro':
         current = valores['metodoVenda']
         current2= valores['metodoCompra']
@@ -196,6 +231,7 @@ while True:
                             tabela_produtos.to_excel(writer, sheet_name='Produtos')
                             tabela_compras.to_excel(writer, sheet_name='Estoque')
                             tabela_vendas.to_excel(writer, sheet_name='Vendas')
+                            tabela_metodos.to_excel(writer, sheet_name='Métodos')
                         janela3.hide()
                         produtosCadastrados = listaProdutos()
                         janela2['comboProdutos'].Update(values=produtosCadastrados)
@@ -222,8 +258,19 @@ while True:
         janela2["-TB-"].Update(produtosAdicionados)
         janela1.hide()
 
+    #Ir para janela Vender Produto
+    if janela == janela1 and eventos == 'Vender Produto':
+        janela4 = janelaVender()
+        janela1.hide()
+        #janela4['tiposProdutos'].Update(values = )
+
+    # Sair da janela Vender Produto e Voltar a Inicial
+    if janela == janela2 and eventos == sg.WINDOW_CLOSED or eventos == 'FinalizarVenda':
+            janela4.hide()
+            janela1.un_hide()
+
     #Sair da janela Adicionar Produto e Voltar a Inicial
-    if janela == janela2 and eventos == sg.WINDOW_CLOSED:
+    if janela == janela2 and eventos == sg.WINDOW_CLOSED or eventos == 'Finalizar':
         janela2.hide()
         janela1.un_hide()
 
