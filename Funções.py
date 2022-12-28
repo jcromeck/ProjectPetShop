@@ -23,10 +23,17 @@ def listaProdutos1(tabela_produtos, idx, quant):
     y= my_list[int(idx)-1].split("-")
     return y
 
-def listaProdutosV1(tabela_compras, idx, quant, metodo_venda, num_Venda):
+def numVenda(tabela_vendas):
+    my_list=0
+    for index, rows in tabela_vendas.iterrows():
+        my_list = int(rows.NumVenda)+1
+    return my_list
+
+def listaProdutosV1(tabela_vendas, tabela_compras, idx, quant, metodo_venda):
     my_list = []
+    num = numVenda(tabela_vendas)
     for index, rows in tabela_compras.iterrows():
-        my_list.append(rows.Produto+"-"+rows.Marca+"-"+str(quant)+"-"+str(float(rows.Valor_Unitário))+"-"+str(float(quant)*float(rows.Valor_Unitário))+'-'+str(metodo_venda))
+        my_list.append(rows.Produto+"-"+rows.Marca+"-"+str(quant)+"-"+str(float(rows.Valor_Unitário))+"-"+str(float(quant)*float(rows.Valor_Unitário))+'-'+str(metodo_venda)+'-'+str(num))
     y= my_list[int(idx)-1].split("-")
     return y
 

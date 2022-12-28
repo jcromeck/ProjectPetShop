@@ -23,8 +23,8 @@ try:
 except FileNotFoundError as fnfe:
     dV= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[], 'Método_Venda':[], 'NumVenda':[]}
     dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[]}
-    dP= {'Produto':[], 'Marca':[], 'Método de Venda':[], 'Valor_Método':[], 'Método_Compra':[]}
-    dM= {'Métodos':[]}
+    dP= {'Produto':[], 'Marca':[], 'Método_Venda':[], 'Valor_Método':[], 'Método_Compra':[]}
+    dM= {'Produto':[], 'Métodos':[]}
     tabela_vendas=pd.DataFrame(data=dV)
     tabela_compras=pd.DataFrame(data=dC)
     tabela_produtos=pd.DataFrame(data=dP)
@@ -39,6 +39,7 @@ metodosdeVenda = listaMetodos(tabela_metodos)
 produtosAdicionados = []
 produtosAVender = []
 valorTotal = 0
+valorTotalV = 0
 produtosEstoque= listaProdutosV(tabela_compras)
 produtosCadastrados= listaProdutos(tabela_produtos)
 
@@ -100,7 +101,7 @@ while True:
     janela, eventos, valores = sg.read_all_windows()
 
     #Vender Produto
-    if janela == janela4 and eventos == 'continuarVenda':
+    if janela == janela4 and eventos == 'ContinuarVenda':
         current = valores['tiposProdutos']
         current2 = valores['metodoVendacP']
         if current in produtosEstoque:
@@ -109,31 +110,32 @@ while True:
                     if int(valores['QuantidadeItemVenda']) >= 0:
                         quant = int(valores['QuantidadeItemVenda'])
                         provisorio = valores['tiposProdutos'].split(". ")
-
-                        estoque = listaProdutosV1(tabela_compras, provisorio[0], quant, valores['metodoVendacP'], )
-                        produtoAdicionado = [produto[0], produto[1], produto[2], produto[3] + " R$", produto[4] + " R$"]
-                        produtosAdicionados.append(produtoAdicionado)
-                        valorTotal += float(produto[4])
-                        janela["-TB-"].Update(values=produtosAdicionados)
-                        janela["valorTotal"].Update(str(valorTotal) + ',00 R$')
-                        janela["quantidadeAdicionada"].Update("")
-                        janela["comboProdutos"].Update("")
-                        new_rowC = {'Produto': produto[0],
-                                    'Marca': produto[1],
-                                    'Quantidade': produto[2],
-                                    'Valor Total Gasto': produto[4]}
-                        # tabela_compras["Valor Total"].ffill()
-                        tabela_compras = tabela_compras.append(new_rowC, ignore_index=True)
+                        estoque = listaProdutosV1(tabela_vendas, tabela_compras, provisorio[0], quant, valores['metodoVendacP'])
+                        produtoAdicionado = [estoque[6], estoque[0], estoque[1], estoque[2]+' '+estoque[4], estoque[3] + " R$"]
+                        produtosAVender.append(produtoAdicionado)
+                        valorTotalV += float(estoque[4])
+                        janela['tV_produtos'].Update(values=produtosAVender)
+                        janela["valorTotalV"].Update(str(valorTotalV) + ' R$')
+                        janela['QuantidadeItemVenda'].Update("")
+                        janela['tiposProdutos'].Update("")
+                        janela['metodoVendacP'].Update("")
+                        new_rowV = {'Produto':[estoque[0]],
+                                    'Marca':[estoque[1]],
+                                    'Quantidade':[estoque[2]],
+                                    'Valor_Unitário':[estoque[3]],
+                                    'Valor_Total':[estoque[4]],
+                                    'Método_Venda':[estoque[5]],
+                                    'NumVenda':[estoque[6]]}
+                        tabela_vendas = tabela_vendas.append(new_rowV, ignore_index=True)
                         with pd.ExcelWriter(path) as writer:
                             tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
                             tabela_compras.to_excel(writer, sheet_name='Estoque', index=False)
                             tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
-                            tabela_metodos.to_excel(writer, sheet_name='Métodos')
+                            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
                     else:
                         messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                 except ValueError as ve:
                     messagebox.showwarning("Erro ao Adicionar", 'O campo Quantidade apenas aceita Números')
-
             else:
                 messagebox.showwarning("Erro ao Adicionar Produto", 'Não foi selecionado nenhum método de venda')
         else:
