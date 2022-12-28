@@ -3,6 +3,65 @@ import PySimpleGUI as sg
 import pandas as pd
 from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir, listaProdutosV, listaProdutosV1
 
+def Dtto_Excel(tabela, num):
+    new_row = dict()
+    #Vendas
+    if num == 0:
+        new_row = {'Produto': estoque[0],
+                    'Marca': estoque[1],
+                    'Quantidade': estoque[2],
+                    'Valor_Unitário': estoque[3],
+                    'Valor_Total': estoque[4],
+                    'Método_Venda': estoque[5],
+                    'NumVenda': estoque[6]}
+        print('Vendas NovaLinha')
+    #Estoque
+    if num == 1:
+        new_row = {'Produto': produto[0],
+                    'Marca': produto[1],
+                    'Quantidade': produto[2],
+                    'Valor Unitário': produto[3]}
+        print('Estoque NovaLinha')
+    #Produtos
+    if num == 2:
+        new_row = {'Produto': valores["Produto"],
+                    'Marca': valores["MarcaProduto"],
+                    'Método_Venda': valores["metodoVenda"],
+                    'Método_Compra': valores["metodoCompra"],
+                    'Valor_Método': valores["valorProduto"]}
+        print('Produtos NovaLinha')
+    #Métodos
+    if num == 3:
+        new_row = {'Métodos': valores["novoMetodoVendaInput"]}
+        print('Métodos NovaLinha')
+    tabela = tabela.append(new_row, ignore_index=True)
+    if num == 0:
+        with pd.ExcelWriter(path) as writer:
+            tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
+            tabela_compras.to_excel(writer, sheet_name='Estoque', index=False)
+            tabela.to_excel(writer, sheet_name='Vendas', index=False)
+            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
+    if num == 1:
+        with pd.ExcelWriter(path) as writer:
+            tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
+            tabela.to_excel(writer, sheet_name='Estoque', index=False)
+            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
+            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
+    if num == 2:
+        with pd.ExcelWriter(path) as writer:
+            tabela.to_excel(writer, sheet_name='Produtos', index=False)
+            tabela_compras.to_excel(writer, sheet_name='Estoque', index=False)
+            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
+            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
+    if num == 3:
+        with pd.ExcelWriter(path) as writer:
+            tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
+            tabela_compras.to_excel(writer, sheet_name='Estoque', index=False)
+            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
+            tabela.to_excel(writer, sheet_name='Métodos', index=False)
+    return tabela
+
+
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
 tabela_vendas= pd.DataFrame()
@@ -17,9 +76,9 @@ try:
     tabela_produtos =dict_df.get('Produtos')
     tabela_compras = dict_df.get('Estoque')
     tabela_metodos = dict_df.get('Métodos')
-    print("Arquivo Encontrado")
+    print("Arquivo Encontrado\n\n")
     tabelas = [tabela_compras, tabela_vendas, tabela_produtos, tabela_metodos]
-    print(str(tabelas[0])+"\n"+str(tabelas[1])+"\n"+str(tabelas[2])+"\n"+str(tabelas[3]))
+    print("Estoque\n"+str(tabelas[0])+"\n\n\nVendas\n"+str(tabelas[1])+"\n\n\nProdutos\n"+str(tabelas[2])+"\n\n\nMétodos\n"+str(tabelas[3]))
 except FileNotFoundError as fnfe:
     dV= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[], 'Método_Venda':[], 'NumVenda':[]}
     dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[]}
@@ -119,19 +178,7 @@ while True:
                         janela['QuantidadeItemVenda'].Update("")
                         janela['tiposProdutos'].Update("")
                         janela['metodoVendacP'].Update("")
-                        new_rowV = {'Produto':[estoque[0]],
-                                    'Marca':[estoque[1]],
-                                    'Quantidade':[estoque[2]],
-                                    'Valor_Unitário':[estoque[3]],
-                                    'Valor_Total':[estoque[4]],
-                                    'Método_Venda':[estoque[5]],
-                                    'NumVenda':[estoque[6]]}
-                        tabela_vendas = tabela_vendas.append(new_rowV, ignore_index=True)
-                        with pd.ExcelWriter(path) as writer:
-                            tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
-                            tabela_compras.to_excel(writer, sheet_name='Estoque', index=False)
-                            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
-                            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
+                        tabela_vendas = Dtto_Excel(tabela_vendas,0)
                     else:
                         messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                 except ValueError as ve:
@@ -140,6 +187,7 @@ while True:
                 messagebox.showwarning("Erro ao Adicionar Produto", 'Não foi selecionado nenhum método de venda')
         else:
             messagebox.showwarning("Erro ao Adicionar Produto", 'Não foi selecionado nenhum produto a ser acrescentado')
+
     #Comprar Produto
     if janela == janela2 and eventos == 'continuarCompra':
         atual = valores['comboProdutos']
@@ -154,20 +202,10 @@ while True:
                         produtosAdicionados.append(produtoAdicionado)
                         valorTotal += float(produto[4])
                         janela["-TB-"].Update(values=produtosAdicionados)
-                        janela["valorTotal"].Update(str(valorTotal)+',00 R$')
+                        janela["valorTotal"].Update(str(valorTotal)+' R$')
                         janela["quantidadeAdicionada"].Update("")
                         janela["comboProdutos"].Update("")
-                        new_rowC = {'Produto': produto[0],
-                                    'Marca': produto[1],
-                                    'Quantidade': produto[2],
-                                    'Valor Unitário': produto[3]}
-                        #tabela_compras["Valor Total"].ffill()
-                        tabela_compras = tabela_compras.append(new_rowC, ignore_index=True)
-                        with pd.ExcelWriter(path) as writer:
-                            tabela_produtos.to_excel(writer, sheet_name='Produtos',index=False)
-                            tabela_compras.to_excel(writer, sheet_name='Estoque',index=False)
-                            tabela_vendas.to_excel(writer, sheet_name='Vendas',index=False)
-                            tabela_metodos.to_excel(writer, sheet_name='Métodos')
+                        tabela_compras = Dtto_Excel(tabela_compras, 1)
                     else:
                         messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                 except ValueError as ve:
@@ -176,7 +214,7 @@ while True:
                 messagebox.showwarning("Erro ao Adicionar", 'Valor inválido no campo "Quantidade"')
         else:
             messagebox.showwarning("Erro ao Adicionar", 'Selecione um produto para adicionar')
-        current3 = valores['metodoVenda']
+
     # Ir para janela Cadastrar Produto
     if janela == janela2 and eventos == 'CadastroProduto':
         janela3 = janelaCadastro()
@@ -190,13 +228,7 @@ while True:
     # Confirmar novo Método de Venda
     if janela == janela3 and eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
         metodosdeVenda.append(valores['novoMetodoVendaInput'])
-        new_rowM = {'Métodos': valores["novoMetodoVendaInput"]}
-        tabela_metodos = tabela_metodos.append(new_rowM, ignore_index=True)
-        with pd.ExcelWriter(path) as writer:
-            tabela_produtos.to_excel(writer, sheet_name='Produtos')
-            tabela_compras.to_excel(writer, sheet_name='Estoque')
-            tabela_vendas.to_excel(writer, sheet_name='Vendas')
-            tabela_metodos.to_excel(writer, sheet_name='Métodos')
+        tabela_metodos = Dtto_Excel(tabela_metodos, 3)
         valores["novoMetodoVendaInput"] = ""
         janela["novoMetodoVendaInput"].Update(visible=False)
         janela["novoMetodoVenda"].Update(visible=False)
@@ -214,23 +246,13 @@ while True:
                 else:
                     try:
                         a = int(valores['valorProduto'])
-                        new_rowP = {'Produto': valores["Produto"],
-                                    'Marca': valores["MarcaProduto"],
-                                    'Método_Venda': valores["metodoVenda"],
-                                    'Método_Compra': valores["metodoCompra"],
-                                    'Valor_Método': valores["valorProduto"]}
-                        tabela_produtos = tabela_produtos.append(new_rowP, ignore_index=True)
-                        with pd.ExcelWriter(path) as writer:
-                            tabela_produtos.to_excel(writer, sheet_name='Produtos')
-                            tabela_compras.to_excel(writer, sheet_name='Estoque')
-                            tabela_vendas.to_excel(writer, sheet_name='Vendas')
-                            tabela_metodos.to_excel(writer, sheet_name='Métodos')
+                        tabela_produtos = Dtto_Excel(tabela_produtos, 2)
                         janela3.hide()
                         produtosCadastrados = listaProdutos(tabela_produtos)
                         janela2['comboProdutos'].Update(values=produtosCadastrados)
                         janela2.un_hide()
                     except ValueError as ve:
-                        messagebox.showwarning("Erro ao Cadastrar", 'O campo Valor do Produto apenas aceita Números '+str(ve))
+                        messagebox.showwarning("Erro ao Cadastrar", 'O campo Valor do Produto apenas aceita Números \n'+str(ve))
             else:
                 messagebox.showwarning("Preencha Todos os campos", 'Preencha o campo de Método de Compra')
         else:

@@ -24,9 +24,9 @@ def listaProdutos1(tabela_produtos, idx, quant):
     return y
 
 def numVenda(tabela_vendas):
-    my_list=0
+    my_list=''
     for index, rows in tabela_vendas.iterrows():
-        my_list = int(rows.NumVenda)+1
+        my_list = str(int(rows.NumVenda)+1)
     return my_list
 
 def listaProdutosV1(tabela_vendas, tabela_compras, idx, quant, metodo_venda):
@@ -47,19 +47,15 @@ def verificarSheet(num):
     if num == 0: #Problema em Estoque
         dC = {'Produto': [], 'Marca': [], 'Quantidade': [], 'Valor Total Gasto': [], 'Valor Total': []}
         tabela_compras = pd.DataFrame.from_dict(dC)
-        print('Estoque')
     if num == 1: #Problema em Vendas
         dV = {'Produto': []}
         tabela_vendas = pd.DataFrame.from_dict(dV)
-        print('Vendas')
     if num == 2: #Problema em Produtos
         dP = {'Produto': [], 'Marca': [], 'Método de Venda': [], 'Valor_Método': [], 'Método_Compra': []}
         tabela_produtos = pd.DataFrame.from_dict(dP)
-        print('Produtos')
     if num == 3: #Problema em Métodos
         dM = {'Métodos':[]}
         tabela_metodos = pd.DataFrame.from_dict(dM)
-        print('Métodos')
 
 def conferir(tabelas, path, num):
     try:
