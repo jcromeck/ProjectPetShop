@@ -1,57 +1,7 @@
 from tkinter import messagebox
 import PySimpleGUI as sg
 import pandas as pd
-
-def listaProdutos():
-    my_list=[]
-    x=1
-    for index, rows in tabela_produtos.iterrows():
-        my_list.append(str(x)+". "+rows.Produto+rows.Marca + "-" + str(rows.Método_Compra))
-        x += 1
-    return my_list
-
-def listaProdutos1(idx, quantidade):
-    my_list = []
-    for index, rows in tabela_produtos.iterrows():
-        my_list.append(rows.Produto+"-"+rows.Marca+"-"+str(quant)+"-"+str(float(rows.Valor_Método))+"-"+str(float(quant)*float(rows.Valor_Método)))
-    y= my_list[int(idx)-1].split("-")
-    return y
-
-def listaMetodos():
-    my_list = []
-    for index, rows in tabela_metodos.iterrows():
-        my_list.append(rows.Métodos)
-    return my_list
-
-def verificarSheet(num):
-    if num == 0: #Problema em Estoque
-        dC = {'Produto': [], 'Marca': [], 'Quantidade': [], 'Valor Total Gasto': [], 'Valor Total': []}
-        tabela_compras = pd.DataFrame.from_dict(dC)
-        print('Estoque')
-    if num == 1: #Problema em Vendas
-        dV = {'Produto': []}
-        tabela_vendas = pd.DataFrame.from_dict(dV)
-        print('Vendas')
-    if num == 2: #Problema em Produtos
-        dP = {'Produto': [], 'Marca': [], 'Método de Venda': [], 'Valor_Método': [], 'Método_Compra': []}
-        tabela_produtos = pd.DataFrame.from_dict(dP)
-        print('Produtos')
-    if num == 3: #Problema em Métodos
-        dM = {'Métodos':[]}
-        tabela_metodos = pd.DataFrame.from_dict(dM)
-        print('Métodos')
-
-def conferir(num):
-    try:
-        sheet_nameS=['Estoque','Vendas','Produtos','Métodos']
-        if num < 4:
-            dict_df = pd.read_excel(path, sheet_name=sheet_nameS[num])
-            tabelas[num]=dict_df.get(sheet_nameS)
-        if num < 4:
-            conferir(num+1)
-    except ValueError as ve1:
-        verificarSheet(num)
-        conferir(num+1)
+from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir
 
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
@@ -82,13 +32,14 @@ except FileNotFoundError as fnfe:
     print("Arquivo não lido, criando um dataframe substituto")
 except ValueError as ve:
     print("Arquivo encontrado, porém sem todas sheets")
-    conferir(0)
+    conferir(tabelas, path,0)
 
 #Código
-metodosdeVenda = listaMetodos()
+metodosdeVenda = listaMetodos(tabela_metodos)
 produtosAdicionados = []
+produtosAVender = []
 valorTotal = 0
-produtosCadastrados= listaProdutos()
+produtosCadastrados= listaProdutos(tabela_produtos)
 
 #Layout
 def janelaInicial():
@@ -131,11 +82,11 @@ def janelaVender():
     sg.theme('DarkBlue')
     layout= [
         [sg.Text("Vender Produto")],
-        [sg.Combo(["pedigree", "Shampoo"], key="tiposProdutos"), sg.Table(values=produtosAdicionados,headings=['Produto','Marca','Quant','ValorUn','ValorTotal'],size=(40,15), key=('tV_produtos'))],
+        [sg.Combo(["pedigree", "Shampoo"], key="tiposProdutos"), sg.Table(values=produtosAVender, headings=['Produto', 'Marca', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key=('tV_produtos'))],
         [sg.Combo(metodosdeVenda,key="metodoVendacP")],
         [sg.InputText(key="QuantidadeItemVenda")],
-        [sg.Checkbox("Frete", default=False), sg.Checkbox("Sorteio", default=False)],
-        [sg.InputText(key="InputFrete", visible=False)],
+        [sg.Text("Valor Total da Compra:", justification= 'right',expand_x=True)],
+        [sg.Text(key='valorTotalV', justification='right',expand_x=True)],
         [sg.Button("+", key="ContinuarVenda"), sg.Button('Finalizar Venda',key="FinalizarVenda")]
     ]
     return sg.Window('Vender Produtos', layout=layout, finalize=True)
@@ -147,6 +98,8 @@ janela1, janela2, janela3, janela4= janelaInicial(), None, None, None
 while True:
     janela, eventos, valores = sg.read_all_windows()
 
+    #Vender Produto
+
     #Comprar Produto
     if janela == janela2 and eventos == 'continuarCompra':
         atual = valores['comboProdutos']
@@ -156,7 +109,7 @@ while True:
                     if int(valores['quantidadeAdicionada']) >= 0:
                         quant = int(valores['quantidadeAdicionada'])
                         provisorio = valores['comboProdutos'].split(". ")
-                        produto = listaProdutos1(provisorio[0], quant)
+                        produto = listaProdutos1(tabela_produtos, provisorio[0], quant)
                         produtoAdicionado=[produto[0], produto[1], produto[2], produto[3]+" R$", produto[4]+" R$"]
                         produtosAdicionados.append(produtoAdicionado)
                         valorTotal += float(produto[4])
@@ -233,7 +186,7 @@ while True:
                             tabela_vendas.to_excel(writer, sheet_name='Vendas')
                             tabela_metodos.to_excel(writer, sheet_name='Métodos')
                         janela3.hide()
-                        produtosCadastrados = listaProdutos()
+                        produtosCadastrados = listaProdutos(tabela_produtos)
                         janela2['comboProdutos'].Update(values=produtosCadastrados)
                         janela2.un_hide()
                     except ValueError as ve:
@@ -265,7 +218,7 @@ while True:
         #janela4['tiposProdutos'].Update(values = )
 
     # Sair da janela Vender Produto e Voltar a Inicial
-    if janela == janela2 and eventos == sg.WINDOW_CLOSED or eventos == 'FinalizarVenda':
+    if janela == janela4 and eventos == sg.WINDOW_CLOSED or eventos == 'FinalizarVenda':
             janela4.hide()
             janela1.un_hide()
 
