@@ -1,7 +1,7 @@
 from tkinter import messagebox
 import PySimpleGUI as sg
 import pandas as pd
-from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir
+from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir, listaProdutosV, listaProdutosV1
 
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
@@ -21,8 +21,8 @@ try:
     tabelas = [tabela_compras, tabela_vendas, tabela_produtos, tabela_metodos]
     print(str(tabelas[0])+"\n"+str(tabelas[1])+"\n"+str(tabelas[2])+"\n"+str(tabelas[3]))
 except FileNotFoundError as fnfe:
-    dV= {'Produto':[]}
-    dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor Total Gasto':[], 'Valor Total':[]}
+    dV= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[], 'Método_Venda':[], 'NumVenda':[]}
+    dC= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[]}
     dP= {'Produto':[], 'Marca':[], 'Método de Venda':[], 'Valor_Método':[], 'Método_Compra':[]}
     dM= {'Métodos':[]}
     tabela_vendas=pd.DataFrame(data=dV)
@@ -39,6 +39,7 @@ metodosdeVenda = listaMetodos(tabela_metodos)
 produtosAdicionados = []
 produtosAVender = []
 valorTotal = 0
+produtosEstoque= listaProdutosV(tabela_compras)
 produtosCadastrados= listaProdutos(tabela_produtos)
 
 #Layout
@@ -82,7 +83,7 @@ def janelaVender():
     sg.theme('DarkBlue')
     layout= [
         [sg.Text("Vender Produto")],
-        [sg.Combo(["pedigree", "Shampoo"], key="tiposProdutos"), sg.Table(values=produtosAVender, headings=['Produto', 'Marca', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key=('tV_produtos'))],
+        [sg.Combo(produtosEstoque, key="tiposProdutos"), sg.Table(values=produtosAVender, headings=['Produto', 'Marca', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key=('tV_produtos'))],
         [sg.Combo(metodosdeVenda,key="metodoVendacP")],
         [sg.InputText(key="QuantidadeItemVenda")],
         [sg.Text("Valor Total da Compra:", justification= 'right',expand_x=True)],
@@ -99,7 +100,44 @@ while True:
     janela, eventos, valores = sg.read_all_windows()
 
     #Vender Produto
+    if janela == janela4 and eventos == 'continuarVenda':
+        current = valores['tiposProdutos']
+        current2 = valores['metodoVendacP']
+        if current in produtosEstoque:
+            if current2 in metodosdeVenda:
+                try:
+                    if int(valores['QuantidadeItemVenda']) >= 0:
+                        quant = int(valores['QuantidadeItemVenda'])
+                        provisorio = valores['tiposProdutos'].split(". ")
 
+                        estoque = listaProdutosV1(tabela_compras, provisorio[0], quant, valores['metodoVendacP'], )
+                        produtoAdicionado = [produto[0], produto[1], produto[2], produto[3] + " R$", produto[4] + " R$"]
+                        produtosAdicionados.append(produtoAdicionado)
+                        valorTotal += float(produto[4])
+                        janela["-TB-"].Update(values=produtosAdicionados)
+                        janela["valorTotal"].Update(str(valorTotal) + ',00 R$')
+                        janela["quantidadeAdicionada"].Update("")
+                        janela["comboProdutos"].Update("")
+                        new_rowC = {'Produto': produto[0],
+                                    'Marca': produto[1],
+                                    'Quantidade': produto[2],
+                                    'Valor Total Gasto': produto[4]}
+                        # tabela_compras["Valor Total"].ffill()
+                        tabela_compras = tabela_compras.append(new_rowC, ignore_index=True)
+                        with pd.ExcelWriter(path) as writer:
+                            tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
+                            tabela_compras.to_excel(writer, sheet_name='Estoque', index=False)
+                            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
+                            tabela_metodos.to_excel(writer, sheet_name='Métodos')
+                    else:
+                        messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
+                except ValueError as ve:
+                    messagebox.showwarning("Erro ao Adicionar", 'O campo Quantidade apenas aceita Números')
+
+            else:
+                messagebox.showwarning("Erro ao Adicionar Produto", 'Não foi selecionado nenhum método de venda')
+        else:
+            messagebox.showwarning("Erro ao Adicionar Produto", 'Não foi selecionado nenhum produto a ser acrescentado')
     #Comprar Produto
     if janela == janela2 and eventos == 'continuarCompra':
         atual = valores['comboProdutos']
@@ -120,7 +158,7 @@ while True:
                         new_rowC = {'Produto': produto[0],
                                     'Marca': produto[1],
                                     'Quantidade': produto[2],
-                                    'Valor Total Gasto': produto[4]}
+                                    'Valor Unitário': produto[3]}
                         #tabela_compras["Valor Total"].ffill()
                         tabela_compras = tabela_compras.append(new_rowC, ignore_index=True)
                         with pd.ExcelWriter(path) as writer:
@@ -136,7 +174,7 @@ while True:
                 messagebox.showwarning("Erro ao Adicionar", 'Valor inválido no campo "Quantidade"')
         else:
             messagebox.showwarning("Erro ao Adicionar", 'Selecione um produto para adicionar')
-
+        current3 = valores['metodoVenda']
     # Ir para janela Cadastrar Produto
     if janela == janela2 and eventos == 'CadastroProduto':
         janela3 = janelaCadastro()
