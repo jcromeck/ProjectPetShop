@@ -45,7 +45,7 @@ def listaMetodos(tabela_metodos):
 
 def verificarSheet(num):
     if num == 0: #Problema em Estoque
-        dC = {'Produto': [], 'Marca': [], 'Quantidade': [], 'Valor Total Gasto': [], 'Valor Total': []}
+        dC = {'Produto': [], 'Marca': [], 'Método': [], 'Quantidade': [], 'Valor_Compra': [],'Valor_Venda':[]}
         tabela_compras = pd.DataFrame.from_dict(dC)
     if num == 1: #Problema em Vendas
         dV = {'Produto': []}
@@ -64,7 +64,7 @@ def conferir(tabelas, path, num):
             dict_df = pd.read_excel(path, sheet_name=sheet_nameS[num])
             tabelas[num]=dict_df.get(sheet_nameS)
         if num < 4:
-            conferir(num+1)
+            conferir(tabelas, path, num+1)
     except ValueError as ve1:
         verificarSheet(num)
-        conferir(num+1)
+        conferir(tabelas, path, num+1)
