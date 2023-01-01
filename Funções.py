@@ -93,3 +93,32 @@ def conferir(tabelas, path, num):
     except ValueError as ve1:
         tabelas[num] = verificarSheet(tabelas, num, path)
         conferir(tabelas, path, num+1)
+
+def valorEestoque(tabelas, idx, num):
+    my_list1 = []
+    my_list2 = []
+    x = []
+    x1 =[]
+    count =0
+    for index, rows in tabelas[0].iterrows():
+        my_list1.append(rows.Produto + rows.Marca + rows.Método + '-' + str(rows.Quantidade))
+    for index, rows in tabelas[2].iterrows():
+        my_list2.append(rows.Produto + rows.Marca + rows.Método_Compra + '-' + str(rows.Valor_Compra))
+    y = my_list2[int(idx)-1].split("-")
+    z = y[0]
+    z1 =y[1]
+    for n in range(len(tabelas[0])):
+        y = my_list1[n].split("-")
+        x.append(y[0])
+        x1.append(y[1])
+        if x[n] == z:
+            count=1
+            if num == 0:  # QUANTIDADE
+                return x1[n]
+            if num == 1:  # VALOR
+                return z1
+    if count == 0:
+        if num == 0:
+            return 0
+        if num == 1:
+            return z1

@@ -1,7 +1,7 @@
 from tkinter import messagebox
 import PySimpleGUI as sg
 import pandas as pd
-from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir, listaProdutosV, listaProdutosV1
+from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir, listaProdutosV, listaProdutosV1, valorEestoque
 from datetime import date
 
 def newRow(d, n, n1):
@@ -99,7 +99,6 @@ tabela_metodos=pd.DataFrame()
 rowMetodos=[]
 tabelas=[tabela_estoque,tabela_vendas,tabela_produtos,tabela_metodos]
 
-
 try:
     dict_df = pd.read_excel(path, sheet_name=['Produtos', 'Estoque', 'Vendas','Métodos'])
     tabela_vendas = dict_df.get('Vendas')
@@ -132,6 +131,8 @@ except ValueError as ve:
 tabela_vendasProv= tabela_vendas
 tabela_estoqueProv= tabela_estoque
 metodosdeVenda = listaMetodos(tabela_metodos)
+estoqueP = ''
+valorP = ''
 produtosAdicionados = []
 produtosAVender = []
 valorTotal = 0
@@ -141,6 +142,7 @@ produtosCadastrados= listaProdutos(tabela_produtos)
 data_em_texto = date.today().strftime('%d/%m/%Y')
 visInput = False
 visBCad = False
+
 
 #Layout
 def janelaInicial():
@@ -191,20 +193,20 @@ def janelaAdicionar():
     sg.theme('Black')
     layout11=[
         [sg.Text('Estoque: ')],
-        [sg.Text('5',expand_x=True, justification='center',background_color='Black',key='estoqueTModificado'),
-         sg.InputText('', key='estoqueModificado', size=(5, 2), visible=False)]
+        [sg.Text(estoqueP,expand_x=True, justification='center',background_color='Black',key='estoqueTModificado'),
+         sg.InputText(estoqueP, key='estoqueModificado', size=(5, 2), visible=False)]
     ]
     layout12=[
         [sg.Text('Valor: ')],
-        [sg.Text('1',expand_x=True, justification='center', key='valorPTModificado', background_color='Black'),
-         sg.InputText('', key='valorProdutoModificado', visible=False, size=(5,2))]
+        [sg.Text(valorP,expand_x=True, justification='center', key='valorPTModificado', background_color='Black'),
+         sg.InputText(valorP, key='valorProdutoModificado', visible=False, size=(5,2))]
     ]
     layout1 = [
         [sg.Column(layout11),sg.Column(layout12)]
     ]
     layoutA= [
         [sg.Text("Produto")],
-        [sg.Combo(produtosCadastrados, size=(15,100),key="comboProdutos", readonly=True),sg.ReadFormButton('',key='editarEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1)],
+        [sg.Combo(produtosCadastrados, size=(15,100),key="comboProdutos", readonly=True, enable_events=True),sg.ReadFormButton('',key='editarEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1)],
         [sg.Text("Quantidade: "),sg.InputText(key="quantidadeAdicionada",size=(3,3),expand_x=True)],
         [sg.ReadFormButton('',key='continuarCompra', button_color='#bee821', image_filename='Arquivos/Carrinho.png', image_size=(50, 50), image_subsample=1, border_width=1),
         sg.Column(layout1, key='ColunaAM')],
@@ -214,7 +216,7 @@ def janelaAdicionar():
         [sg.Text('',expand_x=True,justification='Right'),
          sg.ReadFormButton('',key='editarTBEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1),
          sg.ReadFormButton('',key='excluirTBEstoque', button_color='#9853d1', image_filename='Arquivos/Excluir.png', image_size=(30, 30), image_subsample=2, border_width=1)],
-        [sg.Table(values=produtosAdicionados, select_mode= sg.TABLE_SELECT_MODE_BROWSE, headings=['Produto','Marca','Quant','ValorUn','ValorTotal'],size=(40,15), enable_events=True, key='-TB-')]
+        [sg.Table(values=produtosAdicionados, select_mode= sg.TABLE_SELECT_MODE_BROWSE, headings=['Produto', 'Marca', 'Método', 'Quant', 'ValorUn', 'ValorTotal'],size=(40,15), key='-TB-')]
     ]
     layoutC= [
         [sg.Text("Valor Total da Compra:", justification='right', expand_x=True)],
@@ -281,7 +283,7 @@ while True:
                             quant = int(valores['quantidadeAdicionada'])
                             provisorio = valores['comboProdutos'].split(". ")
                             produto = listaProdutos1(tabela_produtos, provisorio[0], quant, 0)
-                            produtoAdicionado = [produto[0], produto[1], produto[2], produto[4] + " R$", produto[5] + " R$"]
+                            produtoAdicionado = [produto[0], produto[1], produto[2], produto[3], produto[4] + " R$", produto[5] + " R$"]
                             produtosAdicionados.append(produtoAdicionado)
                             janela["-TB-"].Update(values=produtosAdicionados)
                             valorTotal += float(produto[5])
@@ -289,7 +291,6 @@ while True:
                             janela["quantidadeAdicionada"].Update("")
                             janela["comboProdutos"].Update("")
                             tabelas = Dtto_Excel(tabelas, 1)
-                            print(produtosAdicionados)
                         else:
                             messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                     except ValueError as ve:
@@ -302,31 +303,42 @@ while True:
         #Excluir Produto
         if eventos == 'excluirTBEstoque':
             data_selected = [produtosAdicionados[row] for row in valores['-TB-']]
-            print(data_selected)
+            print(tabela_estoqueProv)
+
             if data_selected == []:
                 messagebox.showwarning("Impossível Deletar Dado", 'Precisa Selecionar o Dado na Tabela antes de Deletar')
             else:
                 for row in range(len(produtosAdicionados)):
-                    if produtosAdicionados[row][0] == data_selected[0] and \
-                       produtosAdicionados[row][1] == data_selected[1] and \
-                       produtosAdicionados[row][2] == str([data_selected[2]]) and \
-                       produtosAdicionados[row][3] == str(data_selected[3]) + ' R$' and \
-                       produtosAdicionados[row][4] == str(data_selected[4]) + ' R$':
-                        print('Achei') ######## AQUIIIIIIIIIIIIIIIIII
-                        rowEstoque.pop(row)
-                for row in valores['-TB-']:
-                    produtosAdicionados.pop(row)
+                    if produtosAdicionados[row][0] == data_selected[0][0] and \
+                       produtosAdicionados[row][1] == data_selected[0][1] and \
+                       produtosAdicionados[row][2] == data_selected[0][2] and \
+                       produtosAdicionados[row][3] == data_selected[0][3] and \
+                       produtosAdicionados[row][4] == data_selected[0][4] and \
+                       produtosAdicionados[row][5] == data_selected[0][5]:
+                        tabela_estoqueProv.drop(row)
+                        produtosAdicionados.pop(row)
                 janela['-TB-'].Update(values=produtosAdicionados)
-                valorTotal -= float(data_selected[4])
+                xProv = data_selected[0][5].split(" ")
+                valorTotal -= float(xProv[0])
                 janela["valorTotal"].Update('-' + str(valorTotal) + ' R$')
 
+        #Atualizar Estoque e Valor
+        if eventos == 'comboProdutos':
+            provisorio = valores['comboProdutos'].split(". ")
+            estoqueP = valorEestoque(tabelas, provisorio[0], 0)
+            janela['estoqueTModificado'].Update(estoqueP)
+            valorP = valorEestoque(tabelas, provisorio[0], 1)
+            janela['valorPTModificado'].Update(valorP)
         #Editar
         if eventos == 'editarEstoque':
             if visInput == False:
-                janela['estoqueTModificado'].Update(visible=False)
-                janela['estoqueModificado'].Update(visible=True)
-                janela['valorPTModificado'].Update(visible=False)
-                janela['valorProdutoModificado'].Update(visible=True)
+                provisorio = valores['comboProdutos'].split(". ")
+                estoqueP= valorEestoque(tabelas, provisorio[0], 0)
+                valorP= valorEestoque(tabelas, provisorio[0], 1)
+                janela['estoqueTModificado'].Update( estoqueP, visible=False)
+                janela['estoqueModificado'].Update( estoqueP,visible=True)
+                janela['valorPTModificado'].Update( valorP, visible=False)
+                janela['valorProdutoModificado'].Update( valorP, visible=True)
                 visInput = True
             else:
                 janela['estoqueTModificado'].Update(visible=True)
