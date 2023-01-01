@@ -5,14 +5,6 @@ from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir, lis
 from datetime import date
 
 def newRow(d, n, n1):
-    if n == 0:
-        rowVendas.append(d)
-    if n == 1:
-        rowEstoque.append(d)
-    if n == 2:
-        rowProdutos.append(d)
-    if n == 3:
-        rowMetodos.append(d)
     if n == 10:
         for row in range(len(rowVendas)):
             tabela_vendas.append(rowVendas[row], ignore_index=True)
@@ -40,21 +32,8 @@ def newRow(d, n, n1):
             tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
             tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
         rowProdutos.clear()
-    if n == 13:
-        for row in range(len(rowMetodos)):
-            tabela_metodos.append(rowMetodos[row], ignore_index=True)
-        with pd.ExcelWriter(path) as writer:
-            tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
-            tabela_estoque.to_excel(writer, sheet_name='Estoque', index=False)
-            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
-            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
-        rowMetodos.clear()
-    if n == 20:
-        for row in range(len(rowEstoque)):
-            if n1[0][0] == rowEstoque[row].get('Produto') and n1[0][1] == rowEstoque[row].get('Marca') and n1[0][2] == rowEstoque[row].get('Quantidade') and n1[0][3] == str(rowEstoque[row].get('Valor Unitário'))+' R$':
-                rowEstoque.pop(row)
 
-def Dtto_Excel(tabela, num):
+def Dtto_Excel(tabelas, num):
     new_row = dict()
     #Vendas
     if num == 0:
@@ -78,40 +57,48 @@ def Dtto_Excel(tabela, num):
                    'Quantidade':   produtosProv[3],
                    'Valor_Venda':  produtosProv[4],
                    'Valor_Compra': produtosProv[5]}
-        newRow(new_row, 1, None)
-        print('Estoque Nova Linha')
+        tabela_estoqueProv = tabelas[0].append(new_row, ignore_index=True)
+        print('Estoque Prov Com nova linha')
     #Produtos
     if num == 2:
         new_row = {'Produto': valores["Produto"],
-                    'Marca': valores["MarcaProduto"],
-                    'Valor_Venda': valores['valorProduto'],
-                    'Valor_Compra': valores['valorProduto'],
-                    'Método_Venda': valores["metodoVenda"],
-                    'Método_Compra': valores["metodoCompra"]}
-        tabela.append(new_row, ignore_index=True)
+                   'Marca': valores["MarcaProduto"],
+                   'Valor_Venda': valores['valorMVenda'],
+                   'Valor_Compra': valores['valorMCompra'],
+                   'Método_Venda': valores["metodoVenda"],
+                   'Método_Compra': valores["metodoCompra"]}
+        tabelas[2]= tabelas[2].append(new_row, ignore_index=True)
         with pd.ExcelWriter(path) as writer:
-            tabela.to_excel(writer, sheet_name='Produtos', index=False)
-            tabela_estoque.to_excel(writer, sheet_name='Estoque', index=False)
-            tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
-            tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
+            tabelas[2].to_excel(writer, sheet_name='Produtos', index=False)
+            tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
+            tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
+            tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
         print('Produtos Nova Linha')
+        return tabelas
     #Métodos
     if num == 3:
-        new_row = {'Métodos': valores["novoMetodoVendaInput"]}
-        newRow(new_row,3,None)
-        print('Métodos NovaLinha')
+        new_row = [{'Métodos': valores["novoMetodoVendaInput"]}]
+        tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
+        with pd.ExcelWriter(path) as writer:
+            tabelas[2].to_excel(writer, sheet_name='Produtos', index=False)
+            tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
+            tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
+            tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
+        print('Métodos Nova Linha')
+        return tabelas
 
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
 tabela_vendas= pd.DataFrame()
-tabela_estoque=pd.DataFrame()
-tabela_produtos=pd.DataFrame()
-tabela_metodos=pd.DataFrame()
-tabelas=[tabela_estoque,tabela_vendas,tabela_produtos,tabela_metodos]
-rowEstoque=[]
-rowMetodos=[]
-rowProdutos=[]
 rowVendas=[]
+tabela_estoque=pd.DataFrame()
+rowEstoque=[]
+tabela_produtos=pd.DataFrame()
+rowProdutos=[]
+tabela_metodos=pd.DataFrame()
+rowMetodos=[]
+tabelas=[tabela_estoque,tabela_vendas,tabela_produtos,tabela_metodos]
+
 
 try:
     dict_df = pd.read_excel(path, sheet_name=['Produtos', 'Estoque', 'Vendas','Métodos'])
@@ -126,7 +113,7 @@ except FileNotFoundError as fnfe:
     dV= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Unitário':[], 'Valor_Total':[], 'Método_Venda':[], 'NumVenda':[]}
     dE= {'Produto':[], 'Marca':[], 'Quantidade':[], 'Valor_Venda':[], 'Valor_Compra':[],'Método':[]}
     dP= {'Produto':[], 'Marca':[], 'Método_Venda':[], 'Valor_Método':[], 'Método_Compra':[]}
-    dM= {'Produto':[], 'Métodos':[]}
+    dM= {'Métodos':[]}
     tabela_vendas=pd.DataFrame(data=dV)
     tabela_estoque=pd.DataFrame(data=dE)
     tabela_produtos=pd.DataFrame(data=dP)
@@ -134,9 +121,16 @@ except FileNotFoundError as fnfe:
     print("Arquivo não lido, criando um dataframe substituto")
 except ValueError as ve:
     print("Arquivo encontrado, porém sem todas sheets")
-    conferir(tabelas, path, 0)
+    tabelas = conferir(tabelas, path, 0)
+    print(tabelas)
+    tabela_estoque = tabelas[0]
+    tabela_vendas = tabelas[1]
+    tabela_produtos = tabelas[2]
+    tabela_metodos = tabelas[3]
 
 #Código
+tabela_vendasProv= tabela_vendas
+tabela_estoqueProv= tabela_estoque
 metodosdeVenda = listaMetodos(tabela_metodos)
 produtosAdicionados = []
 produtosAVender = []
@@ -145,8 +139,8 @@ valorTotalV = 0
 produtosEstoque= listaProdutosV(tabela_estoque)
 produtosCadastrados= listaProdutos(tabela_produtos)
 data_em_texto = date.today().strftime('%d/%m/%Y')
-estoqueAdicionar = sg.Text('5',expand_x=True, justification='center',background_color='Black')
-valorPAdicionar = sg.Text('1',expand_x=True, justification='center',background_color='Black')
+visInput = False
+visBCad = False
 
 #Layout
 def janelaInicial():
@@ -164,13 +158,13 @@ def janelaCadastro():
     sg.theme('Black')
     layout1=[
         [sg.Text("Método de Venda:")],
-        [sg.Listbox(metodosdeVenda, key='metodoVenda', size=(30, 6), select_mode=sg.LISTBOX_SELECT_MODE_SINGLE)],
+        [sg.Listbox(metodosdeVenda, key='metodoVenda', size=(30, 6))],
         [sg.Text("Valor de Venda:")],
         [sg.InputText(key='valorMVenda', size=(32, 6))]
     ]
     layout2=[
         [sg.Text("Método de Compra:")],
-        [sg.Listbox(metodosdeVenda, key='metodoCompra', size=(30, 6), select_mode=sg.LISTBOX_SELECT_MODE_SINGLE)],
+        [sg.Listbox(metodosdeVenda, key='metodoCompra', size=(30, 6))],
         [sg.Text("Valor de Compra:")],
         [sg.InputText(key='valorMCompra', size=(32, 6))]
     ]
@@ -183,6 +177,9 @@ def janelaCadastro():
         [sg.HSep()],
         [sg.Text("Métodos", expand_x=True, justification='center')],
         [sg.Column(layout1),sg.Column(layout2)],
+        [sg.Text(' ')],
+        [sg.HSep()],
+        [sg.Text(' ')],
         [sg.Button("+",key='buttonMetodoVenda',expand_x=True, button_color='#bee821')],
         [sg.Text("Métodos", expand_x=True, justification='center',visible=False)],
         [sg.InputText(key='novoMetodoVendaInput',visible=False), sg.Button("+",key="novoMetodoVenda",visible=False, button_color='#bee821')],
@@ -192,16 +189,25 @@ def janelaCadastro():
 
 def janelaAdicionar():
     sg.theme('Black')
-    layout1= [
-        [sg.Text('Estoque: '),sg.Text('Valor: ')],
-        [estoqueAdicionar, valorPAdicionar]
+    layout11=[
+        [sg.Text('Estoque: ')],
+        [sg.Text('5',expand_x=True, justification='center',background_color='Black',key='estoqueTModificado'),
+         sg.InputText('', key='estoqueModificado', size=(5, 2), visible=False)]
+    ]
+    layout12=[
+        [sg.Text('Valor: ')],
+        [sg.Text('1',expand_x=True, justification='center', key='valorPTModificado', background_color='Black'),
+         sg.InputText('', key='valorProdutoModificado', visible=False, size=(5,2))]
+    ]
+    layout1 = [
+        [sg.Column(layout11),sg.Column(layout12)]
     ]
     layoutA= [
         [sg.Text("Produto")],
         [sg.Combo(produtosCadastrados, size=(15,100),key="comboProdutos", readonly=True),sg.ReadFormButton('',key='editarEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1)],
         [sg.Text("Quantidade: "),sg.InputText(key="quantidadeAdicionada",size=(3,3),expand_x=True)],
         [sg.ReadFormButton('',key='continuarCompra', button_color='#bee821', image_filename='Arquivos/Carrinho.png', image_size=(50, 50), image_subsample=1, border_width=1),
-        sg.Column(layout1)],
+        sg.Column(layout1, key='ColunaAM')],
         [sg.Button('CadastrarProduto', key='CadastroProduto', button_color='#bee821', font=(None,15),expand_x=True)]
     ]
     layoutB= [
@@ -263,19 +269,9 @@ while True:
         if eventos == sg.WINDOW_CLOSED or eventos == 'Sair':
             break
 
-    #Adicionar
+    # Adicionar
     if janela == janela2:
-        #Excluir Produto
-        if eventos == 'excluirTBEstoque':
-            data_selected = [produtosAdicionados[row] for row in valores['-TB-']]
-            print(data_selected)
-            newRow(None, 20, data_selected)
-            for row in valores['-TB-']:
-                produtosAdicionados.pop(row)
-            janela['-TB-'].Update(values=produtosAdicionados)
-        #Finalizar Compra
-        #newRow(None,11,None)
-        #Comprar Produto
+        # Carrinho Produto
         if eventos == 'continuarCompra':
             atual = valores['comboProdutos']
             if atual in produtosCadastrados:
@@ -285,14 +281,15 @@ while True:
                             quant = int(valores['quantidadeAdicionada'])
                             provisorio = valores['comboProdutos'].split(". ")
                             produto = listaProdutos1(tabela_produtos, provisorio[0], quant, 0)
-                            produtoAdicionado=[produto[0], produto[1], produto[2], produto[4]+" R$", produto[5]+" R$"]
+                            produtoAdicionado = [produto[0], produto[1], produto[2], produto[4] + " R$", produto[5] + " R$"]
                             produtosAdicionados.append(produtoAdicionado)
                             janela["-TB-"].Update(values=produtosAdicionados)
                             valorTotal += float(produto[5])
-                            janela["valorTotal"].Update('-'+str(valorTotal)+' R$')
+                            janela["valorTotal"].Update('-' + str(valorTotal) + ' R$')
                             janela["quantidadeAdicionada"].Update("")
                             janela["comboProdutos"].Update("")
-                            Dtto_Excel(tabela_estoque, 1)
+                            tabelas = Dtto_Excel(tabelas, 1)
+                            print(produtosAdicionados)
                         else:
                             messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
                     except ValueError as ve:
@@ -301,58 +298,105 @@ while True:
                     messagebox.showwarning("Erro ao Adicionar", 'Valor inválido no campo "Quantidade"')
             else:
                 messagebox.showwarning("Erro ao Adicionar", 'Selecione um produto para adicionar')
+
+        #Excluir Produto
+        if eventos == 'excluirTBEstoque':
+            data_selected = [produtosAdicionados[row] for row in valores['-TB-']]
+            print(data_selected)
+            if data_selected == []:
+                messagebox.showwarning("Impossível Deletar Dado", 'Precisa Selecionar o Dado na Tabela antes de Deletar')
+            else:
+                for row in range(len(produtosAdicionados)):
+                    if produtosAdicionados[row][0] == data_selected[0] and \
+                       produtosAdicionados[row][1] == data_selected[1] and \
+                       produtosAdicionados[row][2] == str([data_selected[2]]) and \
+                       produtosAdicionados[row][3] == str(data_selected[3]) + ' R$' and \
+                       produtosAdicionados[row][4] == str(data_selected[4]) + ' R$':
+                        print('Achei') ######## AQUIIIIIIIIIIIIIIIIII
+                        rowEstoque.pop(row)
+                for row in valores['-TB-']:
+                    produtosAdicionados.pop(row)
+                janela['-TB-'].Update(values=produtosAdicionados)
+                valorTotal -= float(data_selected[4])
+                janela["valorTotal"].Update('-' + str(valorTotal) + ' R$')
+
+        #Editar
+        if eventos == 'editarEstoque':
+            if visInput == False:
+                janela['estoqueTModificado'].Update(visible=False)
+                janela['estoqueModificado'].Update(visible=True)
+                janela['valorPTModificado'].Update(visible=False)
+                janela['valorProdutoModificado'].Update(visible=True)
+                visInput = True
+            else:
+                janela['estoqueTModificado'].Update(visible=True)
+                janela['estoqueModificado'].Update(visible=False)
+                janela['valorPTModificado'].Update(visible=True)
+                janela['valorProdutoModificado'].Update(visible=False)
+                visInput = False
+
+        #Finalizar Compra
+
         # Ir para janela Cadastrar Produto
         if janela == janela2 and eventos == 'CadastroProduto':
             janela3 = janelaCadastro()
             janela2.hide()
+
         # Sair da janela Adicionar Produto e Voltar a Inicial
         if eventos == sg.WINDOW_CLOSED or eventos == 'Finalizar':
             janela2.hide()
             janela1.un_hide()
 
-    #Cadastrar
+    #Cadastrar TERMINADO
     if janela == janela3:
         # Mudar Visibilidade Metodo Venda
         if eventos == 'buttonMetodoVenda':
-            janela["novoMetodoVendaInput"].Update(visible=True)
-            janela["novoMetodoVenda"].Update(visible=True)
+            if visBCad == False:
+                janela["novoMetodoVendaInput"].Update("")
+                janela["novoMetodoVendaInput"].Update(visible=True)
+                janela["novoMetodoVenda"].Update(visible=True)
+                visBCad = True
+            else:
+                janela["novoMetodoVendaInput"].Update(visible=False)
+                janela["novoMetodoVenda"].Update(visible=False)
+                visBCad = False
+
         # Confirmar novo Método de Venda
         if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
             metodosdeVenda.append(valores['novoMetodoVendaInput'])
-            tabela_metodos = Dtto_Excel(tabela_metodos, 3)
-            valores["novoMetodoVendaInput"] = ""
+            tabelas = Dtto_Excel(tabelas, 3)
             janela["novoMetodoVendaInput"].Update(visible=False)
             janela["novoMetodoVenda"].Update(visible=False)
             janela['metodoVenda'].Update(values=metodosdeVenda)
             janela['metodoCompra'].Update(values=metodosdeVenda)
+
         # Adicionar Produto Cadastro
         if eventos == 'EfetuarCadastro':
             current = valores['metodoVenda']
             current2 = valores['metodoCompra']
-            if current in metodosdeVenda:
-                if current2 in metodosdeVenda:
-                    if valores["Produto"] == "" or valores["valorProduto"] == "" or valores['MarcaProduto'] == "":
+            if current != []:
+                if current2 != []:
+                    if valores["Produto"] == "" or valores["valorMVenda"] == "" or valores['MarcaProduto'] == "" or valores["valorMCompra"] == "":
                         messagebox.showwarning("Preencha Todos os campos", 'Preencha os campos corretamente')
                     else:
                         try:
-                            a = int(valores['valorProduto'])
-                            Dtto_Excel(tabela_produtos, 2)
+                            a = float(valores['valorMVenda'])
+                            a = float(valores['valorMCompra'])
+                            tabelas = Dtto_Excel(tabelas, 2)
                             janela3.hide()
-                            produtosCadastrados= listaProdutos(tabela_produtos)
+                            produtosCadastrados= listaProdutos(tabelas[2])
                             janela2['comboProdutos'].Update(values=produtosCadastrados)
                             janela2.un_hide()
                         except ValueError as ve:
-                            messagebox.showwarning("Erro ao Cadastrar",
-                                                   'O campo Valor do Produto apenas aceita Números \n' + str(ve))
+                            messagebox.showwarning("Erro ao Cadastrar",'O campo Valor do Produto apenas aceita Números')
                 else:
                     messagebox.showwarning("Preencha Todos os campos", 'Preencha o campo de Método de Compra')
             else:
                 messagebox.showwarning("Preencha Todos os campos", 'Preencha o campo de Método de Venda')
+
         # Sair da janela Cadastrar Produto e Voltar para Adicionar Produto
         if janela == janela3 and eventos == sg.WINDOW_CLOSED:
             janela3.hide()
-            janela2["-TB-"].Update(produtosAdicionados)
-            janela2['valorTotal'].Update("")
             janela2.un_hide()
 
     #Vender Produto

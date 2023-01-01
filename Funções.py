@@ -48,19 +48,35 @@ def listaMetodos(tabela_metodos):
         my_list.append(rows.Métodos)
     return my_list
 
-def verificarSheet(num):
+def verificarSheet(tabelas, num, path):
     if num == 0: #Problema em Estoque
         dC = {'Produto': ['Ração'], 'Marca': ['Pedigree'], 'Método': ['Pacote'], 'Quantidade': ['10'], 'Valor_Compra': ['8'], 'Valor_Venda':['10']}
-        tabela_compras = pd.DataFrame.from_dict(dC)
+        tabelas[0] = pd.DataFrame.from_dict(dC)
     if num == 1: #Problema em Vendas
-        dV = {'Produto': []}
-        tabela_vendas = pd.DataFrame.from_dict(dV)
+        dV = {'Produto':[],
+              'Marca':[],
+              'Quantidade':[],
+              'Valor_Unitário': [],
+              'Valor_Total': [],
+              'Método_Venda': [],
+              'NumVenda': []}
+        tabelas[1] = pd.DataFrame.from_dict(dV)
     if num == 2: #Problema em Produtos
-        dP = {'Produto': [], 'Marca': [], 'Método de Venda': [], 'Valor_Método': [], 'Método_Compra': []}
-        tabela_produtos = pd.DataFrame.from_dict(dP)
+        dP = {'Produto': [],
+              'Marca': [],
+              'Valor_Venda': [],
+              'Valor_Compra': [],
+              'Método_Venda': [],
+              'Método_Compra': []}
+        tabelas[2] = pd.DataFrame.from_dict(dP)
     if num == 3: #Problema em Métodos
         dM = {'Métodos':[]}
-        tabela_metodos = pd.DataFrame.from_dict(dM)
+        tabelas[3] = pd.DataFrame.from_dict(dM)
+    with pd.ExcelWriter(path) as writer:
+        tabelas[2].to_excel(writer, sheet_name='Produtos', index=False)
+        tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
+        tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
+        tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
 
 def conferir(tabelas, path, num):
     try:
@@ -70,6 +86,10 @@ def conferir(tabelas, path, num):
             tabelas[num]=dict_df.get(sheet_nameS)
         if num < 4:
             conferir(tabelas, path, num+1)
+        else:
+            print('Tabela do Conferir: \n')
+            print(tabelas)
+            return tabelas
     except ValueError as ve1:
-        verificarSheet(num)
+        tabelas[num] = verificarSheet(tabelas, num, path)
         conferir(tabelas, path, num+1)
