@@ -193,13 +193,14 @@ def janelaAdicionar():
     sg.theme('Black')
     layout11=[
         [sg.Text('Estoque: ')],
-        [sg.Text(estoqueP,expand_x=True, justification='center',background_color='Black',key='estoqueTModificado'),
-         sg.InputText(estoqueP, key='estoqueModificado', size=(5, 2), visible=False)]
+        [sg.Text(estoqueP,expand_x=True, justification='center',key='estoqueTModificado'),
+        sg.Input(key='estoqueModificado', size=(5, 2), visible=False)]
     ]
+
     layout12=[
         [sg.Text('Valor: ')],
-        [sg.Text(valorP,expand_x=True, justification='center', key='valorPTModificado', background_color='Black'),
-         sg.InputText(valorP, key='valorProdutoModificado', visible=False, size=(5,2))]
+        [sg.Text(valorP,expand_x=True, justification='center', key='valorPTModificado')
+        ,sg.InputText(key='valorProdutoModificado', visible=False, size=(5,2))]
     ]
     layout1 = [
         [sg.Column(layout11),sg.Column(layout12)]
@@ -234,7 +235,7 @@ def janelaVender():
     sg.theme('DarkBlue')
     layout= [
         [sg.Text("Vender Produto")],
-        [sg.Combo(produtosEstoque, key="tiposProdutos"), sg.Table(values=produtosAVender, headings=['Produto', 'Marca', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key=('tV_produtos'))],
+        [sg.Combo(produtosEstoque, key="tiposProdutos"), sg.Table(values=produtosAVender, headings=['Produto', 'Marca', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key='tV_produtos')],
         [sg.Combo(metodosdeVenda,key="metodoVendacP")],
         [sg.InputText(key="QuantidadeItemVenda")],
         [sg.Text("Valor Total da Compra:", justification= 'right',expand_x=True)],
@@ -324,27 +325,53 @@ while True:
 
         #Atualizar Estoque e Valor
         if eventos == 'comboProdutos':
-            provisorio = valores['comboProdutos'].split(". ")
-            estoqueP = valorEestoque(tabelas, provisorio[0], 0)
+            provisorio = valores['comboProdutos'].split("-")
+            condicao = (tabela_produtos['Produto'] == provisorio[0]) & (tabela_produtos['Marca'] == provisorio[1])
+            condicao2 = (tabela_estoque['Produto'] == provisorio[0]) & (tabela_estoque['Marca'] == provisorio[1])
+            indice = tabela_produtos.loc[condicao, :].index[0]
+            try:
+                indice2 = tabela_estoque.loc[condicao2, :].index[0]
+                estoqueP = tabela_estoque.loc[indice2, 'Quantidade']
+            except IndexError as ie:
+                estoqueP = '0'
+            valorP = tabela_produtos.loc[indice, 'Valor_Compra']
             janela['estoqueTModificado'].Update(estoqueP)
-            valorP = valorEestoque(tabelas, provisorio[0], 1)
             janela['valorPTModificado'].Update(valorP)
+            janela['estoqueModificado'].Update(estoqueP)
+            janela['valorProdutoModificado'].Update(valorP)
         #Editar
         if eventos == 'editarEstoque':
-            if visInput == False:
-                provisorio = valores['comboProdutos'].split(". ")
-                estoqueP= valorEestoque(tabelas, provisorio[0], 0)
-                valorP= valorEestoque(tabelas, provisorio[0], 1)
+            if visInput == False: #ABRINDO INPUT
                 janela['estoqueTModificado'].Update( estoqueP, visible=False)
                 janela['estoqueModificado'].Update( estoqueP,visible=True)
                 janela['valorPTModificado'].Update( valorP, visible=False)
                 janela['valorProdutoModificado'].Update( valorP, visible=True)
                 visInput = True
-            else:
-                janela['estoqueTModificado'].Update(visible=True)
-                janela['estoqueModificado'].Update(visible=False)
-                janela['valorPTModificado'].Update(visible=True)
-                janela['valorProdutoModificado'].Update(visible=False)
+            else: #ABRINDO TEXT
+                estoqueP = valores['estoqueModificado']
+                provisorio = valores['comboProdutos'].split("-")
+                condicao = (tabela_produtos['Produto'] == provisorio[0]) & (tabela_produtos['Marca'] == provisorio[1])
+                condicao2 = (tabela_estoque['Produto'] == provisorio[0]) & (tabela_estoque['Marca'] == provisorio[1])
+                indice = tabela_produtos.loc[condicao, :].index[0]
+                tabela_produtos.at[indice, 'Valor_Compra'] = valores['valorProdutoModificado']
+                try:
+                    if estoqueP != '0':
+                        indice2 = tabela_estoque.loc[condicao2, :].index[0]
+                        tabela_estoque.at[indice2, 'Quantidade'] = valores['valorProdutoModificado']
+                except IndexError as ie:
+                    messagebox.showwarning("Erro ao Editar Estoque", 'Produto nunca antes adicionado, precisa adicionar uma vez antes de editar seu estoque')
+                    estoqueP = '0'
+                with pd.ExcelWriter(path) as writer:
+                    tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
+                    tabela_estoque.to_excel(writer, sheet_name='Estoque', index=False)
+                    tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
+                    tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
+                valorP = valores['valorProdutoModificado']
+
+                janela['estoqueTModificado'].Update(estoqueP, visible=True)
+                janela['estoqueModificado'].Update(estoqueP, visible=False)
+                janela['valorPTModificado'].Update(valorP, visible=True)
+                janela['valorProdutoModificado'].Update(valorP, visible=False)
                 visInput = False
 
         #Finalizar Compra

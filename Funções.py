@@ -2,18 +2,14 @@ import pandas as pd
 
 def listaProdutos(tabela_produtos):
     my_list=[]
-    x=1
     for index, rows in tabela_produtos.iterrows():
-        my_list.append(str(x)+". "+rows.Produto+rows.Marca + "-" + str(rows.Método_Compra))
-        x += 1
+        my_list.append(rows.Produto+"-"+rows.Marca + "-" + str(rows.Método_Compra))
     return my_list
 
 def listaProdutosV(tabela_compras):
     my_list=[]
-    x=1
     for index, rows in tabela_compras.iterrows():
-        my_list.append(str(x)+". "+rows.Produto+' - '+rows.Marca)
-        x += 1
+        my_list.append(rows.Produto+' - '+rows.Marca)
     return my_list
 
 def listaProdutos1(tabela_produtos, idx, quant,n):
@@ -104,7 +100,7 @@ def valorEestoque(tabelas, idx, num):
         my_list1.append(rows.Produto + rows.Marca + rows.Método + '-' + str(rows.Quantidade))
     for index, rows in tabelas[2].iterrows():
         my_list2.append(rows.Produto + rows.Marca + rows.Método_Compra + '-' + str(rows.Valor_Compra))
-    y = my_list2[int(idx)-1].split("-")
+    y = my_list2[int(idx-1)].split('-')
     z = y[0]
     z1 =y[1]
     for n in range(len(tabelas[0])):
