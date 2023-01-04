@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 import pandas as pd
 from Funções import listaMetodos, listaProdutos, listaProdutos1, conferir, listaProdutosV, listaProdutosV1
 from datetime import date
+from Adicionar import mainA
 
 def newRow(d, n, n1):
     if n == 10:
@@ -78,73 +79,8 @@ def Dtto_Excel(tabelas, num):
         return tabelas
     #Métodos
     if num == 3:
-        new_row = [{'Métodos': valores["novoMetodoVendaInput"]}]
-        tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
-        with pd.ExcelWriter(path) as writer:
-            tabelas[2].to_excel(writer, sheet_name='Produtos', index=False)
-            tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
-            tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
-            tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
-        print('Métodos Nova Linha')
+
         return tabelas
-
-def carrinhoAdicionar(valorTotal, tabelas):
-    atual = valores['comboProdutos']
-    numProv = 0
-    if atual in produtosCadastrados:
-        if not valores['quantidadeAdicionada'] == "":
-            try:
-                if int(valores['quantidadeAdicionada']) >= 0:
-                    quant = int(valores['quantidadeAdicionada'])
-                    provisorio = valores['comboProdutos'].split("-")
-                    condicao = (tabela_produtos['Produto'] == provisorio[0]) & (
-                                tabela_produtos['Marca'] == provisorio[1]) & (
-                                tabela_produtos['Método'] == provisorio[2])
-                    indice = tabela_produtos.loc[condicao, :].index[0]
-                    if tabela_produtos['ReporEstoquepProd'][indice] == 'Sim':
-                        janPop = popupRepor()
-                        while True:
-                            jan, event, val = janPop.read()
-                            if eventos == 'concluirPopup':
-                                prov = valores['comboPopup'].split("-")
-                                cond = (tabela_estoqueProv['Produto'] == prov[0]) & (
-                                        tabela_estoqueProv['Marca'] == prov[1]) & (
-                                        tabela_estoqueProv['Método'] == prov[2])
-                                indic = tabela_estoqueProv.loc[cond, :].index[0]
-                                tabela_estoqueProv.at[indic, 'Quantidade'] -= valores['propRet']
-
-                                prov = valores['comboProdutos'].split("-")
-                                cond = (tabela_estoqueProv['Produto'] == provisorio[0]) & (
-                                        tabela_estoqueProv['Marca'] == provisorio[1]) & (
-                                        tabela_estoqueProv['Método'] == provisorio[2])
-                                indic = tabela_estoqueProv.loc[cond, :].index[0]
-                                tabela_estoqueProv.at[indic, 'Quantidade'] += valores['propAdic']
-                                estoqueP = tabela_estoque.loc[indice2, 'Quantidade']
-                                janela['estoqueTModificado'].Update(estoqueP, visible=True)
-                                janela['estoqueModificado'].Update(estoqueP, visible=False)
-                                jan.close()
-                                break
-
-                    produto = listaProdutos1(tabela_produtos, provisorio[0], quant, 0)
-                    produtoAdicionado = [produto[0], produto[1], produto[2], produto[3],
-                                         produto[4] + " R$", produto[5] + " R$"]
-                    produtosAdicionados.append(produtoAdicionado)
-                    janela["-TB-"].Update(values=produtosAdicionados)
-                    valorTotal += float(produto[5])
-                    janela["valorTotal"].Update('-' + str(valorTotal) + ' R$')
-                    janela["quantidadeAdicionada"].Update("")
-                    janela["comboProdutos"].Update("")
-                    tabelass = Dtto_Excel(tabelas, 1)
-                    return tabelass
-                else:
-                    messagebox.showwarning("Erro ao Adicionar", 'Valor abaixo de 0 não é aceito')
-            except ValueError as ve:
-                messagebox.showwarning("Erro ao Adicionar", 'O campo Quantidade apenas aceita Números')
-        else:
-            messagebox.showwarning("Erro ao Adicionar", 'Valor inválido no campo "Quantidade"')
-    else:
-        messagebox.showwarning("Erro ao Adicionar", 'Selecione um produto para adicionar')
-
 
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
@@ -187,15 +123,11 @@ except ValueError as ve:
     tabela_metodos = tabelas[3]
 
 #Código
-tabela_vendasProv = tabela_vendas; tabela_estoqueProv = tabela_estoque
-metodosdeVenda = listaMetodos(tabela_metodos); metodosdeCompra = metodosdeVenda.append('Outro produto do estoque')
-estoqueP = ''; valorP = ''
-produtosAdicionados = []; produtosAVender = []
-valorTotal = 0; valorTotalV = 0
-produtosEstoque = listaProdutosV(tabela_estoque); produtosCadastrados = listaProdutos(tabela_produtos)
+tabela_vendasProv = tabela_vendas
+produtosAVender = []
+valorTotalV = 0
+produtosEstoque = listaProdutosV(tabela_estoque);
 data_em_texto = date.today().strftime('%d/%m/%Y')
-visInput = False; visBCad = False
-
 
 #Layout
 def janelaInicial():
@@ -208,95 +140,6 @@ def janelaInicial():
         [sg.Button('Sair', size=(25,1), font=(None,20), expand_x=True, button_color='#9853d1')]
     ]
     return sg.Window('LUME AGROPET', icon='Arquivos/icon.ico', layout=layout, finalize=True)
-
-def popupRepor():
-    layout = [
-        [sg.Text('Selecione o Item retirado')],
-        [sg.Combo(produtosCadastrados, key='comboPopup', size=(20, 1))],
-        [sg.Text('Agora Selecione a proporção')],
-        [sg.Text('Selecione a quantidade retirada'), sg.Input(key='propRet')],
-        [sg.Text('Selecione a quantidade adicionada'), sg.Input(key='propAdic')],
-        [sg.Button('Ok', key='concluirPopup')]
-    ]
-
-    return sg.Popup('Item com Reposição a partir de outro item', layout)
-
-def janelaCadastro():
-    sg.theme('Black')
-    layout1 = [
-        [sg.Text("Método de Venda:")],
-        [sg.Listbox(metodosdeVenda, key='metodoVenda', size=(30, 6))],
-        [sg.Text("Valor de Venda:")],
-        [sg.InputText(key='valorMVenda', size=(32, 6))]
-    ]
-    layout2 = [
-        [sg.Text("Método de Compra:")],
-        [sg.Listbox(metodosdeCompra, key='metodoCompra', size=(30, 6))],
-        [sg.Text("Valor de Compra:")],
-        [sg.InputText(key='valorMCompra', size=(32, 6))]
-    ]
-    layoutP = [
-        [sg.Text("Produto:")],
-        [sg.InputText(key="Produto")],
-        [sg.Text("Marca: ")],
-        [sg.InputText(key="MarcaProduto")],
-        [sg.Text(' ')],
-        [sg.HSep()],
-        [sg.Text("Métodos", expand_x=True, justification='center')],
-        [sg.Column(layout1),
-         sg.Column(layout2)],
-        [sg.Text(' ')],
-        [sg.HSep()],
-        [sg.Text(' ')],
-        [sg.Button("+", key='buttonMetodoVenda', expand_x=True, button_color='#bee821')],
-        [sg.Text("Métodos", expand_x=True, justification='center', visible=False)],
-        [sg.InputText(key='novoMetodoVendaInput', visible=False),
-         sg.Button("+", key="novoMetodoVenda", visible=False, button_color='#bee821')],
-        [sg.Button("EfetuarCadastro", button_color='#9853d1')]
-    ]
-    return sg.Window('Cadastrar Produtos', layout=layoutP, finalize=True)
-
-def janelaAdicionar():
-    sg.theme('Black')
-    layout11=[
-        [sg.Text('Estoque: ')],
-        [sg.Text(estoqueP,expand_x=True, justification='center',key='estoqueTModificado'),
-        sg.Input(key='estoqueModificado', size=(5, 2), visible=False)]
-    ]
-
-    layout12=[
-        [sg.Text('Valor: ')],
-        [sg.Text(valorP,expand_x=True, justification='center', key='valorPTModificado')
-        ,sg.InputText(key='valorProdutoModificado', visible=False, size=(5,2))]
-    ]
-    layout1 = [
-        [sg.Column(layout11),sg.Column(layout12)]
-    ]
-    layoutA= [
-        [sg.Text("Produto")],
-        [sg.Combo(produtosCadastrados, size=(15,100),key="comboProdutos", readonly=True, enable_events=True),sg.ReadFormButton('',key='editarEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1)],
-        [sg.Text("Quantidade: "),sg.InputText(key="quantidadeAdicionada",size=(3,3),expand_x=True)],
-        [sg.ReadFormButton('',key='continuarCompra', button_color='#bee821', image_filename='Arquivos/Carrinho.png', image_size=(50, 50), image_subsample=1, border_width=1),
-        sg.Column(layout1, key='ColunaAM')],
-        [sg.Button('CadastrarProduto', key='CadastroProduto', button_color='#bee821', font=(None,15),expand_x=True)]
-    ]
-    layoutB= [
-        [sg.Text('',expand_x=True,justification='Right'),
-         sg.ReadFormButton('',key='editarTBEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1),
-         sg.ReadFormButton('',key='excluirTBEstoque', button_color='#9853d1', image_filename='Arquivos/Excluir.png', image_size=(30, 30), image_subsample=2, border_width=1)],
-        [sg.Table(values=produtosAdicionados, select_mode= sg.TABLE_SELECT_MODE_BROWSE, headings=['Produto', 'Marca', 'Método', 'Quant', 'ValorUn', 'ValorTotal'],size=(40,15), key='-TB-')]
-    ]
-    layoutC= [
-        [sg.Text("Valor Total da Compra:", justification='right', expand_x=True)],
-        [sg.Text('',key='valorTotal', justification='right', expand_x=True,text_color='Red')]
-    ]
-    layoutP=[
-        [sg.Column(layoutA),
-         sg.Column(layoutB)],
-        [sg.Button('Concluir', font=(None,15), expand_x=True, button_color='#9853d1'),
-        sg.Column(layoutC)]
-    ]
-    return sg.Window('Adicionar Produtos', layout= layoutP, finalize=True)
 
 def janelaVender():
     sg.theme('DarkBlue')
@@ -312,7 +155,7 @@ def janelaVender():
     return sg.Window('Vender Produtos', layout=layout, finalize=True)
 
 #Janela
-janela1, janela2, janela3, janela4 = janelaInicial()  , None, None, None
+janela1, janela2, janela3, janela4 = janelaInicial(), None, None, None
 
 #Ler os eventos
 while True:
@@ -322,166 +165,13 @@ while True:
     if janela == janela1:
         #Ir para janela Adicionar Produto
         if eventos == 'Adicionar Produto':
-            if janela2 != None:
-                janela2.un_hide()
-            else:
-                janela2 = janelaAdicionar()
-            janela2['comboProdutos'].Update(values=produtosCadastrados)
-            produtosAdicionados.clear()
-            janela2["-TB-"].Update(produtosAdicionados)
+            tabelas = mainA(tabelas, path)
         # Ir para janela Vender Produto
         if eventos == 'Vender Produto':
             janela4 = janelaVender()
         # Fechar Programa
         if eventos == sg.WINDOW_CLOSED or eventos == 'Sair':
             break
-
-    # Adicionar
-    if janela == janela2:
-        # Carrinho Produto
-        if eventos == 'continuarCompra':
-            tabelas = carrinhoAdicionar(valorTotal, tabelas)
-
-        #Excluir Produto
-        if eventos == 'excluirTBEstoque':
-            data_selected = [produtosAdicionados[row] for row in valores['-TB-']]
-            print(tabela_estoqueProv)
-
-            if data_selected == []:
-                messagebox.showwarning("Impossível Deletar Dado", 'Precisa Selecionar o Dado na Tabela antes de Deletar')
-            else:
-                for row in range(len(produtosAdicionados)):
-                    if produtosAdicionados[row][0] == data_selected[0][0] and \
-                       produtosAdicionados[row][1] == data_selected[0][1] and \
-                       produtosAdicionados[row][2] == data_selected[0][2] and \
-                       produtosAdicionados[row][3] == data_selected[0][3] and \
-                       produtosAdicionados[row][4] == data_selected[0][4] and \
-                       produtosAdicionados[row][5] == data_selected[0][5]:
-                        tabela_estoqueProv.drop(row)
-                        produtosAdicionados.pop(row)
-                janela['-TB-'].Update(values=produtosAdicionados)
-                xProv = data_selected[0][5].split(" ")
-                valorTotal -= float(xProv[0])
-                janela["valorTotal"].Update('-' + str(valorTotal) + ' R$')
-
-        #Atualizar Estoque e Valor
-        if eventos == 'comboProdutos':
-            provisorio = valores['comboProdutos'].split("-")
-            condicao = (tabela_produtos['Produto'] == provisorio[0]) & (tabela_produtos['Marca'] == provisorio[1])
-            condicao2 = (tabela_estoque['Produto'] == provisorio[0]) & (tabela_estoque['Marca'] == provisorio[1])
-            indice = tabela_produtos.loc[condicao, :].index[0]
-            try:
-                indice2 = tabela_estoque.loc[condicao2, :].index[0]
-                estoqueP = tabela_estoque.loc[indice2, 'Quantidade']
-            except IndexError as ie:
-                estoqueP = '0'
-            valorP = tabela_produtos.loc[indice, 'Valor_Compra']
-            janela['estoqueTModificado'].Update(estoqueP)
-            janela['valorPTModificado'].Update(valorP)
-            janela['estoqueModificado'].Update(estoqueP)
-            janela['valorProdutoModificado'].Update(valorP)
-
-        #Editar
-        if eventos == 'editarEstoque':
-            if visInput == False: #ABRINDO INPUT
-                janela['estoqueTModificado'].Update( estoqueP, visible=False)
-                janela['estoqueModificado'].Update( estoqueP,visible=True)
-                janela['valorPTModificado'].Update( valorP, visible=False)
-                janela['valorProdutoModificado'].Update( valorP, visible=True)
-                visInput = True
-            else: #ABRINDO TEXT
-                estoqueP = valores['estoqueModificado']
-                provisorio = valores['comboProdutos'].split("-")
-                condicao = (tabela_produtos['Produto'] == provisorio[0]) & (tabela_produtos['Marca'] == provisorio[1])
-                condicao2 = (tabela_estoque['Produto'] == provisorio[0]) & (tabela_estoque['Marca'] == provisorio[1])
-                indice = tabela_produtos.loc[condicao, :].index[0]
-                tabela_produtos.at[indice, 'Valor_Compra'] = valores['valorProdutoModificado']
-                try:
-                    if estoqueP != '0':
-                        indice2 = tabela_estoque.loc[condicao2, :].index[0]
-                        tabela_estoque.at[indice2, 'Quantidade'] = valores['valorProdutoModificado']
-                except IndexError as ie:
-                    messagebox.showwarning("Erro ao Editar Estoque", 'Produto nunca antes adicionado, precisa adicionar uma vez antes de editar seu estoque')
-                    estoqueP = '0'
-                with pd.ExcelWriter(path) as writer:
-                    tabela_produtos.to_excel(writer, sheet_name='Produtos', index=False)
-                    tabela_estoque.to_excel(writer, sheet_name='Estoque', index=False)
-                    tabela_vendas.to_excel(writer, sheet_name='Vendas', index=False)
-                    tabela_metodos.to_excel(writer, sheet_name='Métodos', index=False)
-                valorP = valores['valorProdutoModificado']
-
-                janela['estoqueTModificado'].Update(estoqueP, visible=True)
-                janela['estoqueModificado'].Update(estoqueP, visible=False)
-                janela['valorPTModificado'].Update(valorP, visible=True)
-                janela['valorProdutoModificado'].Update(valorP, visible=False)
-                visInput = False
-
-        #Finalizar Compra
-
-        # Ir para janela Cadastrar Produto
-        if janela == janela2 and eventos == 'CadastroProduto':
-            janela3 = janelaCadastro()
-            janela2.hide()
-
-        # Sair da janela Adicionar Produto e Voltar a Inicial
-        if eventos == sg.WINDOW_CLOSED or eventos == 'Finalizar':
-            janela2.hide()
-
-    #Cadastrar TERMINADO
-    if janela == janela3:
-        # Mudar Visibilidade Metodo Venda
-        if eventos == 'buttonMetodoVenda':
-            if visBCad == False:
-                janela["novoMetodoVendaInput"].Update("")
-                janela["novoMetodoVendaInput"].Update(visible=True)
-                janela["novoMetodoVenda"].Update(visible=True)
-                visBCad = True
-            else:
-                janela["novoMetodoVendaInput"].Update(visible=False)
-                janela["novoMetodoVenda"].Update(visible=False)
-                visBCad = False
-
-        # Confirmar novo Método de Venda
-        if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
-            metodosdeVenda.append(valores['novoMetodoVendaInput'])
-            tabelas = Dtto_Excel(tabelas, 3)
-            janela["novoMetodoVendaInput"].Update(visible=False)
-            janela["novoMetodoVenda"].Update(visible=False)
-            janela['metodoVenda'].Update(values=metodosdeVenda)
-            janela['metodoCompra'].Update(values=metodosdeVenda)
-
-        # Adicionar Produto Cadastro
-        if eventos == 'EfetuarCadastro':
-            current = valores['metodoVenda']
-            current2 = valores['metodoCompra']
-            if current != []:
-                if current2 != []:
-                    if valores["Produto"] == "" or valores["valorMVenda"] == "" or valores['MarcaProduto'] == "" or valores["valorMCompra"] == "":
-                        messagebox.showwarning("Preencha Todos os campos", 'Preencha os campos corretamente')
-                    else:
-                        try:
-                            if valores['metodoCompra'] == 'Outro produto do estoque':
-                                outroProduto = 'Sim'
-                            else:
-                                outroProduto = 'Não'
-                            a = float(valores['valorMVenda'])
-                            a = float(valores['valorMCompra'])
-                            tabelas = Dtto_Excel(tabelas, 2)
-                            janela3.hide()
-                            produtosCadastrados= listaProdutos(tabelas[2])
-                            janela2['comboProdutos'].Update(values=produtosCadastrados)
-                            janela2.un_hide()
-                        except ValueError as ve:
-                            messagebox.showwarning("Erro ao Cadastrar",'O campo Valor do Produto apenas aceita Números')
-                else:
-                    messagebox.showwarning("Preencha Todos os campos", 'Preencha o campo de Método de Compra')
-            else:
-                messagebox.showwarning("Preencha Todos os campos", 'Preencha o campo de Método de Venda')
-
-        # Sair da janela Cadastrar Produto e Voltar para Adicionar Produto
-        if janela == janela3 and eventos == sg.WINDOW_CLOSED:
-            janela3.hide()
-            janela2.un_hide()
 
     #Vender Produto
     if janela == janela4:

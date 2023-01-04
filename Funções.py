@@ -38,6 +38,13 @@ def listaProdutosV1(tabela_vendas, tabela_compras, idx, quant, metodo_venda):
     y= my_list[int(idx)-1].split("-")
     return y
 
+def writerE(tabelas, path):
+    with pd.ExcelWriter(path) as writer:
+        tabelas[2].to_excel(writer, sheet_name='Produtos', index=False)
+        tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
+        tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
+        tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
+
 def listaMetodos(tabela_metodos):
     my_list = []
     for index, rows in tabela_metodos.iterrows():
