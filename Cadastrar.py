@@ -1,8 +1,8 @@
 import PySimpleGUI as sg
 from tkinter import messagebox
-from Funções import writerE, listaMetodos
+from Funções import writerE
 
-def janelaCadastro(tabelas,metodosdeVenda,metodosdeCompra):
+def janelaCadastro(metodosdeVenda,metodosdeCompra):
     sg.theme('Black')
     layout1 = [
         [sg.Text("Método de Venda:")],
@@ -36,76 +36,62 @@ def janelaCadastro(tabelas,metodosdeVenda,metodosdeCompra):
     ]
     return sg.Window('Cadastrar Produtos', layout=layoutP, finalize=True)
 
-def mainC(tabelas, path):
-    metodosdeVenda = listaMetodos(tabelas[3])
+def visCad(visBCad, j):
+    if visBCad == False:
+        j["novoMetodoVendaInput"].Update("")
+        j["novoMetodoVendaInput"].Update(visible=True)
+        j["novoMetodoVenda"].Update(visible=True)
+        visBCad = True
+    else:
+        j["novoMetodoVendaInput"].Update(visible=False)
+        j["novoMetodoVenda"].Update(visible=False)
+        visBCad = False
+    return visBCad
+
+def NewM(tabelas, v, j, metodosdeVenda, path):
+    metodosdeVenda.append(v['novoMetodoVendaInput'])
     metodosdeCompra = ['Outro produto do estoque'] + metodosdeVenda
-    janela = janelaCadastro(tabelas,metodosdeVenda,metodosdeCompra)
-    visBCad = False
-    while True:
-        j, e, v = janela.read()
+    new_row = [{'Métodos': v["novoMetodoVendaInput"]}]
+    tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
+    writerE(tabelas, path)
+    j["novoMetodoVendaInput"].Update(visible=False)
+    j["novoMetodoVenda"].Update(visible=False)
+    j['metodoVenda'].Update(values=metodosdeVenda)
+    j['metodoCompra'].Update(values=metodosdeCompra)
+    return metodosdeVenda, metodosdeCompra, tabelas
 
-        # Mudar Visibilidade Metodo Venda
-        if e == 'buttonMetodoVenda':
-            if visBCad == False:
-                j["novoMetodoVendaInput"].Update("")
-                j["novoMetodoVendaInput"].Update(visible=True)
-                j["novoMetodoVenda"].Update(visible=True)
-                visBCad = True
-            else:
-                j["novoMetodoVendaInput"].Update(visible=False)
-                j["novoMetodoVenda"].Update(visible=False)
-                visBCad = False
-
-        # Confirmar novo Método de Venda
-        if e == 'novoMetodoVenda' and not v['novoMetodoVendaInput'] == '':
-            metodosdeVenda.append(v['novoMetodoVendaInput'])
-            new_row = [{'Métodos': v["novoMetodoVendaInput"]}]
-            tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
-            writerE(tabelas, path)
-            j["novoMetodoVendaInput"].Update(visible=False)
-            j["novoMetodoVenda"].Update(visible=False)
-            j['metodoVenda'].Update(values=metodosdeVenda)
-            j['metodoCompra'].Update(values=metodosdeVenda)
-
-        # Adicionar Produto Cadastro
-        if e == 'EfetuarCadastro':
-            current = v['metodoVenda']
-            current2 = v['metodoCompra']
-            if current != []:
-                if current2 != []:
-                    if v["Prod"] == "" or v["valorMVenda"] == "" or v['MarcaProduto'] == "" or v["valorMCompra"] == "":
-                        messagebox.showwarning("Preencha Todos os campos", 'Preencha os campos corretamente')
-                    else:
-                        try:
-                            if v['metodoCompra'] == 'Outro produto do estoque':
-                                outroProduto = 'Sim'
-                            else:
-                                outroProduto = 'Não'
-                            a = float(v['valorMVenda'])
-                            a = float(v['valorMCompra'])
-                            new_row = {'Produto': v["Prod"],
-                                       'Marca': v["MarcaProduto"],
-                                       'Valor_Venda': v['valorMVenda'],
-                                       'Valor_Compra': v['valorMCompra'],
-                                       'Método_Venda': v["metodoVenda"],
-                                       'Método_Compra': v["metodoCompra"],
-                                       'ReporEstoquepProd': outroProduto}
-                            tabelas[2] = tabelas[2].append(new_row, ignore_index=True)
-                            writerE(tabelas, path)
-                            break
-                        except ValueError as ve:
-                            messagebox.showwarning("Erro ao Cadastrar",
-                                                   'O campo Valor do Produto apenas aceita Números')
-                else:
-                    messagebox.showwarning("Preencha Todos os campos",
-                                           'Preencha o campo de Método de Compra')
-            else:
+def EfCad(tabelas, v, path):
+    current = v['metodoVenda']
+    current2 = v['metodoCompra']
+    if current != []:
+        if current2 != []:
+            if v["Prod"] == "" or v["valorMVenda"] == "" or v['MarcaProduto'] == "" or v["valorMCompra"] == "":
                 messagebox.showwarning("Preencha Todos os campos",
-                                       'Preencha o campo de Método de Venda')
-
-        # Sair da janela Cadastrar Produto e Voltar para Adicionar Produto
-        if e == sg.WINDOW_CLOSED:
-            break
-    janela.close()
-    tabelas1 = tabelas
-    return tabelas1
+                                       'Preencha os campos corretamente')
+            else:
+                try:
+                    if v['metodoCompra'] == 'Outro produto do estoque':
+                        outroProduto = 'Sim'
+                    else:
+                        outroProduto = 'Não'
+                    a = float(v['valorMVenda'])
+                    a = float(v['valorMCompra'])
+                    new_row = {'Produto': v["Prod"],
+                               'Marca': v["MarcaProduto"],
+                               'Valor_Venda': v['valorMVenda'],
+                               'Valor_Compra': v['valorMCompra'],
+                               'Método_Venda': v["metodoVenda"],
+                               'Método_Compra': v["metodoCompra"],
+                               'ReporEstoquepProd': outroProduto}
+                    tabelas[2] = tabelas[2].append(new_row, ignore_index=True)
+                    writerE(tabelas, path)
+                    return tabelas
+                except ValueError as ve:
+                    messagebox.showwarning("Erro ao Cadastrar",
+                                           'O campo Valor do Produto apenas aceita Números')
+        else:
+            messagebox.showwarning("Preencha Todos os campos",
+                                   'Preencha o campo de Método de Compra')
+    else:
+        messagebox.showwarning("Preencha Todos os campos",
+                               'Preencha o campo de Método de Venda')

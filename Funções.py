@@ -1,27 +1,33 @@
 import pandas as pd
 
-def listaProdutos(tabela_produtos):
+def listaProdutos(tabela_produtos, n):
     my_list=[]
     for index, rows in tabela_produtos.iterrows():
-        my_list.append(rows.Produto+"-"+rows.Marca + "-" + str(rows.Método_Compra))
+        if n == 0:
+            my_list.append(rows.Produto+"-"+rows.Marca + "-" + str(rows.Método_Compra))
+        if n == 1:
+            my_list.append(rows.Produto + "-" + rows.Marca + "-" + str(rows.Método_Venda))
     return my_list
 
 def listaProdutosV(tabela_compras):
     my_list=[]
     for index, rows in tabela_compras.iterrows():
-        my_list.append(rows.Produto+' - '+rows.Marca)
+        my_list.append(rows.Produto+' - '+rows.Marca + "-" + str(rows.Método))
     return my_list
 
 def listaProdutos1(tabela_produtos, idx, quant,n):
     my_list = []
+    y =[]
     if n == 0:
         for index, rows in tabela_produtos.iterrows():
-            my_list.append(rows.Produto+"-"+rows.Marca+"-"+rows.Método_Venda+"-"+str(quant)+"-"+str(float(rows.Valor_Venda))+"-"+str(float(rows.Valor_Venda)*float(quant)))
-        y= my_list[int(idx)-1].split("-")
+            my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Compra + "-" + str(quant) + "-" + str(
+                float(rows.Valor_Compra)) + "-" + str(float(rows.Valor_Compra) * float(quant)))
+        y = my_list[int(idx)].split("-")
     if n == 1:
         for index, rows in tabela_produtos.iterrows():
-            my_list.append(rows.Produto+"-"+rows.Marca+"-"+rows.Método_Venda+"-"+str(quant)+"-"+str(float(rows.Valor_Venda))+"-"+str(float(rows.Valor_Compra)))
-        y = my_list[int(idx) - 1].split("-")
+            my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Venda + "-" + str(quant) + "-" + str(
+                float(rows.Valor_Venda)) + "-" + str(float(rows.Valor_Compra)))
+        y = my_list[int(idx)].split("-")
     return y
 
 def numVenda(tabela_vendas):
@@ -30,12 +36,12 @@ def numVenda(tabela_vendas):
         my_list = str(int(rows.NumVenda)+1)
     return my_list
 
-def listaProdutosV1(tabela_vendas, tabela_compras, idx, quant, metodo_venda):
+def listaProdutosV1(tabela_vendas, tabela_compras, idx, quant):
     my_list = []
     num = numVenda(tabela_vendas)
     for index, rows in tabela_compras.iterrows():
-        my_list.append(rows.Produto+"-"+rows.Marca+"-"+str(quant)+"-"+str(float(rows.Valor_Venda))+"-"+str(float(quant)*float(rows.Valor_Venda))+'-'+str(metodo_venda)+'-'+str(num))
-    y= my_list[int(idx)-1].split("-")
+        my_list.append(rows.Produto+"-"+rows.Marca+'-'+rows.Método_Venda+'-'+rows.Método_Compra+"-"+str(quant)+"-"+str(float(rows.Valor_Venda))+"-"+str(float(quant)*float(rows.Valor_Venda)))
+    y = my_list[int(idx)-1].split("-")
     return y
 
 def writerE(tabelas, path):
