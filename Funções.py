@@ -1,23 +1,23 @@
 import pandas as pd
 
 def listaProdutos(tabela_produtos, n):
-    my_list=[]
+    my_list = []
     for index, rows in tabela_produtos.iterrows():
         if n == 0:
-            my_list.append(rows.Produto+"-"+rows.Marca + "-" + str(rows.Método_Compra))
+            my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
         if n == 1:
-            my_list.append(rows.Produto + "-" + rows.Marca + "-" + str(rows.Método_Venda))
+            my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Venda)
     return my_list
 
 def listaProdutosV(tabela_compras):
-    my_list=[]
+    my_list = []
     for index, rows in tabela_compras.iterrows():
-        my_list.append(rows.Produto+' - '+rows.Marca + "-" + str(rows.Método))
+        my_list.append(rows.Produto+'-'+rows.Marca + "-" + str(rows.Método))
     return my_list
 
 def listaProdutos1(tabela_produtos, idx, quant,n):
     my_list = []
-    y =[]
+    y = []
     if n == 0:
         for index, rows in tabela_produtos.iterrows():
             my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Compra + "-" + str(quant) + "-" + str(
@@ -31,17 +31,24 @@ def listaProdutos1(tabela_produtos, idx, quant,n):
     return y
 
 def numVenda(tabela_vendas):
-    my_list=''
+    my_list = ''
     for index, rows in tabela_vendas.iterrows():
         my_list = str(int(rows.NumVenda)+1)
     return my_list
 
-def listaProdutosV1(tabela_vendas, tabela_compras, idx, quant):
+def listaProdutosV1(tabelas, idx, quant, n):
     my_list = []
-    num = numVenda(tabela_vendas)
-    for index, rows in tabela_compras.iterrows():
-        my_list.append(rows.Produto+"-"+rows.Marca+'-'+rows.Método_Venda+'-'+rows.Método_Compra+"-"+str(quant)+"-"+str(float(rows.Valor_Venda))+"-"+str(float(quant)*float(rows.Valor_Venda)))
-    y = my_list[int(idx)-1].split("-")
+    y = []
+    if n == 0:
+        for index, rows in tabelas[2].iterrows():
+            my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Compra + "-" + str(quant) + "-" + str(
+                float(rows.Valor_Venda)) + "-" + str(float(rows.Valor_Venda) * float(quant)))
+        y = my_list[int(idx)].split("-")
+    if n == 1:
+        for index, rows in tabelas[2].iterrows():
+            my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Venda + "-" + str(quant) + "-" + str(
+                float(rows.Valor_Venda)) + "-" + str(float(rows.Valor_Compra)))
+        y = my_list[int(idx)].split("-")
     return y
 
 def writerE(tabelas, path):
@@ -50,56 +57,11 @@ def writerE(tabelas, path):
         tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
         tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
         tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
+        tabelas[4].to_excel(writer, sheet_name='P_Vendas', index=False)
 
 def listaMetodos(tabela_metodos):
     my_list = []
     for index, rows in tabela_metodos.iterrows():
         my_list.append(rows.Métodos)
     return my_list
-
-def verificarSheet(tabelas, num, path):
-    if num == 0: #Problema em Estoque
-        dC = {'Produto': ['Ração'], 'Marca': ['Pedigree'], 'Método': ['Pacote'], 'Quantidade': ['10'], 'Valor_Compra': ['8'], 'Valor_Venda':['10']}
-        tabelas[0] = pd.DataFrame.from_dict(dC)
-    if num == 1: #Problema em Vendas
-        dV = {'Produto':[],
-              'Marca':[],
-              'Quantidade':[],
-              'Valor_Unitário': [],
-              'Valor_Total': [],
-              'Método_Venda': [],
-              'NumVenda': []}
-        tabelas[1] = pd.DataFrame.from_dict(dV)
-    if num == 2: #Problema em Produtos
-        dP = {'Produto': [],
-              'Marca': [],
-              'Valor_Venda': [],
-              'Valor_Compra': [],
-              'Método_Venda': [],
-              'Método_Compra': []}
-        tabelas[2] = pd.DataFrame.from_dict(dP)
-    if num == 3: #Problema em Métodos
-        dM = {'Métodos':[]}
-        tabelas[3] = pd.DataFrame.from_dict(dM)
-    with pd.ExcelWriter(path) as writer:
-        tabelas[2].to_excel(writer, sheet_name='Produtos', index=False)
-        tabelas[0].to_excel(writer, sheet_name='Estoque', index=False)
-        tabelas[1].to_excel(writer, sheet_name='Vendas', index=False)
-        tabelas[3].to_excel(writer, sheet_name='Métodos', index=False)
-
-def conferir(tabelas, path, num):
-    try:
-        sheet_nameS=['Estoque', 'Vendas', 'Produtos', 'Métodos']
-        if num < 4:
-            dict_df = pd.read_excel(path, sheet_name=sheet_nameS[num])
-            tabelas[num]=dict_df.get(sheet_nameS)
-        if num < 4:
-            conferir(tabelas, path, num+1)
-        else:
-            print('Tabela do Conferir: \n')
-            print(tabelas)
-            return tabelas
-    except ValueError as ve1:
-        tabelas[num] = verificarSheet(tabelas, num, path)
-        conferir(tabelas, path, num+1)
 

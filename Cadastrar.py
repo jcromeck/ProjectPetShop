@@ -60,7 +60,7 @@ def NewM(tabelas, v, j, metodosdeVenda, path):
     j['metodoCompra'].Update(values=metodosdeCompra)
     return metodosdeVenda, metodosdeCompra, tabelas
 
-def EfCad(tabelas, v, path):
+def EfCad(tabelas, v, j, path):
     current = v['metodoVenda']
     current2 = v['metodoCompra']
     if current != []:
@@ -80,8 +80,8 @@ def EfCad(tabelas, v, path):
                                'Marca': v["MarcaProduto"],
                                'Valor_Venda': v['valorMVenda'],
                                'Valor_Compra': v['valorMCompra'],
-                               'Método_Venda': v["metodoVenda"],
-                               'Método_Compra': v["metodoCompra"],
+                               'Método_Venda': j['metodoVenda'].get()[0],
+                               'Método_Compra': j["metodoCompra"].get()[0],
                                'ReporEstoquepProd': outroProduto}
                     tabelas[2] = tabelas[2].append(new_row, ignore_index=True)
                     writerE(tabelas, path)

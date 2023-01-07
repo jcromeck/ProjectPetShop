@@ -11,11 +11,11 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
     ]
     layout12 = [
         [sg.Text('Valor: ')],
-        [sg.Text(valorP,expand_x=True, justification='center', key='valorPTModificado')
-        ,sg.InputText(key='valorProdutoModificado', visible=False, size=(8,2))]
+        [sg.Text(valorP, expand_x=True, justification='center', key='valorPTModificado'),
+         sg.InputText(key='valorProdutoModificado', visible=False, size=(8, 2))]
     ]
     layout1 = [
-        [sg.Column(layout11),sg.Column(layout12)]
+        [sg.Column(layout11), sg.Column(layout12)]
     ]
     layoutA = [
         [sg.Text("Produto")],
@@ -28,9 +28,8 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
     ]
     layoutB = [
         [sg.Text('',expand_x=True,justification='Right'),
-         sg.ReadFormButton('',key='editarTBEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1),
-         sg.ReadFormButton('',key='excluirTBEstoque', button_color='#9853d1', image_filename='Arquivos/Excluir.png', image_size=(30, 30), image_subsample=2, border_width=1)],
-        [sg.Table(values=produtosAdicionados, select_mode=sg.SELECT_MODE_BROWSE, headings=['Produto', 'Marca', 'Método', 'Quant', 'ValorUn', 'ValorTotal'],size=(40,15), key='-TB-')]
+         sg.ReadFormButton('', key='excluirTBEstoque', button_color='red', image_filename='Arquivos/Excluir.png', image_size=(30, 30), image_subsample=2, border_width=1)],
+        [sg.Table(values=produtosAdicionados, select_mode=sg.SELECT_MODE_BROWSE, headings=['Produto', 'Marca', 'Método', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key='-TB-')]
     ]
     layoutC = [
         [sg.Text("Valor Total da Compra:", justification='right', expand_x=True)],
@@ -39,8 +38,8 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
     layoutP = [
         [sg.Column(layoutA),
          sg.Column(layoutB)],
-        [sg.Button('Concluir', font=(None,15), expand_x=True, button_color='#9853d1'),
-        sg.Column(layoutC)]
+        [sg.Button('Concluir', font=(None, 15), expand_x=True, button_color='#9853d1'),
+         sg.Column(layoutC)]
     ]
     return sg.Window('Adicionar Produtos', layout=layoutP, finalize=True)
 
@@ -54,7 +53,7 @@ def popupRepor(produtosCadastrados):
         [sg.Button('Ok', key='concluirPopup')]
     ]
     return sg.Window('Item com Reposição a partir de outro item', layout)
-
+# Selecionar Produto
 def SePr(tabelas, v, janela):
     provisorio = v['comboProdutos'].split("-")
     condicao = (tabelas[2]['Produto'] == provisorio[0]) & (
@@ -91,7 +90,7 @@ def popC(tabelas, tabela_estoqueProv, v, j):
     j['estoqueTModificado'].Update(estoqueP, visible=True)
     j['estoqueModificado'].Update(estoqueP, visible=False)
     return estoqueP, tabela_estoqueProv
-
+# Carrinho Adicionar
 def CarAd(t, v, j, produtosCadastrados, estoqueP):
     atual = v['comboProdutos']
     if atual in produtosCadastrados:
@@ -102,8 +101,6 @@ def CarAd(t, v, j, produtosCadastrados, estoqueP):
                     provisorio = v['comboProdutos'].split("-")
                     condicao = (t[2]['Produto'] == provisorio[0]) & (t[2]['Marca'] == provisorio[1]) & (t[2]['Método_Compra'] == provisorio[2])
                     indice = t[2].loc[condicao, :].index[0]
-                    print(t[2]['ReporEstoquepProd'][indice])
-                    print(estoqueP)
                     if t[2]['ReporEstoquepProd'][indice] == 'Sim' and estoqueP == '0':
                         janPop = popupRepor(produtosCadastrados)
                         return janPop, quant, indice
@@ -112,16 +109,20 @@ def CarAd(t, v, j, produtosCadastrados, estoqueP):
                 else:
                     messagebox.showwarning("Erro ao Adicionar",
                                            'Valor abaixo de 0 não é aceito')
+                    return None, None, None
             except ValueError as ve:
                 messagebox.showwarning("Erro ao Adicionar",
                                        'O campo Quantidade apenas aceita Números')
+                return None, None, None
         else:
             messagebox.showwarning("Erro ao Adicionar",
                                    'Valor inválido no campo "Quantidade"')
+            return None, None, None
     else:
         messagebox.showwarning("Erro ao Adicionar",
                                'Selecione um produto para adicionar')
-
+        return None, None, None
+# Carrinho Adicionar pt2
 def CardAdc(tabelas, v, j, indice, quant, valorTotal, produtosAdicionados, tabela_estoqueP):
     produto = listaProdutos1(tabelas[2], indice, quant, 0)
     produtoAdicionado = [produto[0], produto[1], produto[2], produto[3],
@@ -139,48 +140,48 @@ def CardAdc(tabelas, v, j, indice, quant, valorTotal, produtosAdicionados, tabel
                'Método': produtosProv[2],
                'Quantidade': produtosProv[3],
                'Valor_Venda': produtosProv[4],
-               'Valor_Total': produtosProv[5]}
+               'Valor_Compra': produtosProv[5]}
     tabela_estoqueP = tabela_estoqueP.append(new_row, ignore_index=True)
     return valorTotal, tabela_estoqueP, produtosAdicionados
-
-def EditE(tabelas, path, j, v, visInput, valorP):
+# Editar Estoque
+def EditE(tabelas, path, j, v, visInput, valorP, estoqueP):
     if visInput == False:  # ABRINDO INPUT
-        estoqueP = v['estoqueModificado']
         j['estoqueTModificado'].Update(estoqueP, visible=False)
         j['estoqueModificado'].Update(estoqueP, visible=True)
         j['valorPTModificado'].Update(valorP, visible=False)
         j['valorProdutoModificado'].Update(valorP, visible=True)
         visInput = True
     else:  # ABRINDO TEXT
-        estoqueP = v['estoqueModificado']
+        estoqueP = int(v['estoqueModificado'])
+        valorP = int(v['valorProdutoModificado'])
         provisorio = v['comboProdutos'].split("-")
         condicao = (tabelas[2]['Produto'] == provisorio[0]) & (tabelas[2]['Marca'] == provisorio[1]) & (tabelas[2]['Método_Compra'] == provisorio[2])
         condicao2 = (tabelas[0]['Produto'] == provisorio[0]) & (
                     tabelas[0]['Marca'] == provisorio[1]) & (tabelas[0]['Método'] == provisorio[2])
         indice = tabelas[2].loc[condicao, :].index[0]
-        tabelas[2].at[indice, 'Valor_Compra'] = v['valorProdutoModificado']
+        tabelas[2].at[indice, 'Valor_Compra'] = valorP
         try:
             if estoqueP != '0':
                 indice2 = tabelas[0].loc[condicao2, :].index[0]
-                tabelas[0].at[indice2, 'Quantidade'] = v['valorProdutoModificado']
+                tabelas[0].at[indice2, 'Quantidade'] = estoqueP
         except IndexError as ie:
             messagebox.showwarning("Erro ao Editar Estoque",
                                    'Produto nunca antes adicionado.\nPrecisa adicionar uma vez antes de editar seu estoque')
             estoqueP = '0'
         writerE(tabelas, path)
-        valorP = v['valorProdutoModificado']
         j['estoqueTModificado'].Update(estoqueP, visible=True)
         j['estoqueModificado'].Update(estoqueP, visible=False)
         j['valorPTModificado'].Update(valorP, visible=True)
         j['valorProdutoModificado'].Update(valorP, visible=False)
         visInput = False
-    return visInput, tabelas
-
+    return visInput, tabelas, valorP, estoqueP
+# Excluir Linha Table
 def ExC(produtosAdicionados, j, v, valorTotal, tabela_estoqueProv):
     data_selected = [produtosAdicionados[row] for row in v['-TB-']]
     if data_selected == []:
         messagebox.showwarning("Impossível Deletar Dado",
                                'Precisa Selecionar o Dado na Tabela antes de Deletar')
+        return valorTotal, tabela_estoqueProv, produtosAdicionados
     else:
         for row in range(len(produtosAdicionados)):
             if produtosAdicionados[row][0] == data_selected[0][0] and \
@@ -196,3 +197,8 @@ def ExC(produtosAdicionados, j, v, valorTotal, tabela_estoqueProv):
         valorTotal -= float(xProv[0])
         j["valorTotal"].Update('-' + str(valorTotal) + ' R$')
         return valorTotal, tabela_estoqueProv, produtosAdicionados
+# Finalizar
+def FinalizarAd(tabela_estoqueP, tabelas, path):
+    tabelas[0] = tabela_estoqueP
+    writerE(tabelas, path)
+    return tabelas
