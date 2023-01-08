@@ -14,10 +14,10 @@ def janelaVender(produtosEstoque, produtosAVender, estoqueP, valorP):
         [sg.Text(valorP, expand_x=True, justification='center', key='valorPTVModificado'),
          sg.InputText(key='valorProdutoVModificado', visible=False, size=(8, 2))]
     ]
-    layoutC= [
+    layoutC = [
         [sg.Column(layoutC1), sg.Column(layoutC2)]
     ]
-    layout1= [
+    layout1 = [
         [sg.Text("Produto")],
         [sg.Combo(produtosEstoque, key="tiposProdutos", enable_events=True)],
         [sg.Text("")],

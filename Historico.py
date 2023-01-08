@@ -5,12 +5,12 @@ def janelaHistorico(vendasEfetuadasH,comprasEfetuadasH):
     layout1 = [
         [sg.Text('', expand_x=True), sg.Text("Vendas:"), sg.Text('', expand_x=True)],
         [sg.Table(values=vendasEfetuadasH, select_mode=sg.SELECT_MODE_BROWSE,
-                  headings=['ID', 'Data', 'NumProdutos', 'ValorTotal'], size=(40, 20), key='-TBHV-')]
+                  headings=['ID', 'Data', 'Quantidade Produtos', 'ValorTotal'], size=(40, 20), key='-TBHV-')]
     ]
     layout2 = [
         [sg.Text('', expand_x=True), sg.Text("Compras:"), sg.Text('', expand_x=True)],
         [sg.Table(values=comprasEfetuadasH, select_mode=sg.SELECT_MODE_BROWSE,
-                  headings=['ID', 'Data', 'NumProdutos', 'ValorTotal'], size=(40, 20), key='-TBHV-')]
+                  headings=['ID', 'Data', 'Quantidade Produtos', 'ValorTotal'], size=(40, 20), key='-TBHV-')]
     ]
     layoutP = [
         [sg.CalendarButton('Selecione uma data',  format='%d/%m/%Y', key='-DATE-', button_color='#bee821'),

@@ -13,47 +13,71 @@ from Estoque import *
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
 pathBackup ="Arquivos/Compras_Backup.xlsx"
-tabela_vendas = pd.DataFrame()
-tabela_estoque = pd.DataFrame()
-tabela_produtos = pd.DataFrame()
-tabela_metodos = pd.DataFrame()
-tabelas = [tabela_estoque, tabela_vendas, tabela_produtos, tabela_metodos]
+tabela_mtds = pd.DataFrame()    #0
+tabela_pdts = pd.DataFrame()    #1
+tabela_pVds = pd.DataFrame()    #2
+tabela_vendas = pd.DataFrame()  #3
+tabela_pCompras = pd.DataFrame()#4
+tabela_compras = pd.DataFrame() #5
+tabela_estoque = pd.DataFrame() #6
 
 try:
-    dict_df = pd.read_excel(path, sheet_name=['Produtos', 'Estoque', 'Vendas', 'Métodos'])
-    tabela_vendas = dict_df.get('Vendas')
-    tabela_produtos = dict_df.get('Produtos')
-    tabela_estoque = dict_df.get('Estoque')
-    tabela_metodos = dict_df.get('Métodos')
+    dDf=pd.read_excel(path, sheet_name=['Métodos', 'Produtos', 'P_Vendas', 'Vendas', 'P_Compras', 'Compras', 'Estoque'])
+    tabela_mtds = dDf.get('Métodos')
+    tabela_pdts = dDf.get('Produtos')
+    tabela_pVds = dDf.get('P_Vendas')
+    tabela_vendas = dDf.get('Vendas')
+    tabela_pCompras = dDf.get('P_Compras')
+    tabela_compras = dDf.get('Compras')
+    tabela_estoque = dDf.get('Estoque')
     print("Arquivo Encontrado\n\n")
-    tabelas = [tabela_estoque, tabela_vendas, tabela_produtos, tabela_metodos]
-    print("Estoque\n"+str(tabelas[0])+"\n\n\nVendas\n"+str(tabelas[1])+"\n\n\nProdutos\n"+str(tabelas[2])+"\n\n\nMétodos\n"+str(tabelas[3]))
+    tabelas = [tabela_mtds, tabela_pdts, tabela_pVds, tabela_vendas, tabela_pCompras, tabela_compras, tabela_estoque]
+    print("\n\nMétodos\n"+str(tabelas[0]))
+    print("\n\nProdutos\n"+str(tabelas[1]))
+    print("\n\nProduto_Vendas\n"+str(tabelas[2]))
+    print("\n\nVendas\n"+str(tabelas[3]))
+    print("\n\nProduto_Compras\n"+str(tabelas[4]))
+    print("\n\nCompras\n"+str(tabelas[5]))
+    print("\n\nEstoque\n"+str(tabelas[6]))
 except FileNotFoundError as fnfe:
-    dict_df = pd.read_excel(pathBackup, sheet_name=['Produtos', 'Estoque', 'Vendas', 'Métodos', 'P_Vendas'])
-    tabela_prodvendas = dict_df.get('P_Vendas')
-    tabela_vendas = dict_df.get('Vendas')
-    tabela_produtos = dict_df.get('Produtos')
-    tabela_estoque = dict_df.get('Estoque')
-    tabela_metodos = dict_df.get('Métodos')
+    dDf=pd.read_excel(pathBackup, sheet_name=['Métodos','Produtos','P_Vendas','Vendas','P_Compras','Compras','Estoque'])
+    tabela_mtds = dDf.get('Métodos')
+    tabela_pdts = dDf.get('Produtos')
+    tabela_pVds = dDf.get('P_Vendas')
+    tabela_vendas = dDf.get('Vendas')
+    tabela_pCompras = dDf.get('P_Compras')
+    tabela_compras = dDf.get('Compras')
+    tabela_estoque = dDf.get('Estoque')
     print("Arquivo Não Encontrado, colocando backup\n\n")
-    tabelas = [tabela_estoque, tabela_vendas, tabela_produtos, tabela_metodos, tabela_prodvendas]
-    print("Estoque\n" + str(tabelas[0]) + "\n\n\nVendas\n" + str(tabelas[1]) + "\n\n\nProdutos\n" + str(
-        tabelas[2]) + "\n\n\nMétodos\n" + str(tabelas[3]) + "\n\n\nProdutos Vendidos\n" + str(tabelas[4]))
+    tabelas = [tabela_mtds, tabela_pdts, tabela_pVds, tabela_vendas, tabela_pCompras, tabela_compras, tabela_estoque]
+    print("\n\nMétodos\n"+str(tabelas[0]))
+    print("\n\nProdutos\n"+str(tabelas[1]))
+    print("\n\nProduto_Vendas\n"+str(tabelas[2]))
+    print("\n\nVendas\n"+str(tabelas[3]))
+    print("\n\nProduto_Compras\n"+str(tabelas[4]))
+    print("\n\nCompras\n"+str(tabelas[5]))
+    print("\n\nEstoque\n"+str(tabelas[6]))
 
 # Código
 tabela_vendasProv = tabela_vendas
 produtosAVender = []
 data_em_texto = date.today().strftime('%d/%m/%Y')
-pC = listaProdutos(tabelas[2], 0); eP = ''; vP = ''; pA = []; vT=0; vTV = 0
+# Adicionar
+pA = []
+# Vender
+pAV = []
+# Histórico
+vEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
+cEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
+
+vT=0 ; vTV = 0
 t0P = tabelas[0]; vI = False; vBC = False
 mdV = listaMetodos(tabelas[3])
 mdC = ['Outro produto do estoque'] + mdV
-pAV = []
 editTBidx = 0
 editTBn = 0
 nV = 0
 tPVP = tabelas[4]
-vEH = [] ; cEH = []
 # Layout
 def janelaInicial():
     sg.theme('Black')
@@ -74,44 +98,80 @@ janelaP, janelaA, janelaC, janelaV, janelaPop, janelaH, janelaE = janelaInicial(
 janelaEP, janelaEst = None, None
 
 # Ler os eventos
-while True:
+while True:                 # MUDAR O EXCEL BACKUP PRA NOVAS SHEETS DE ACORDO COM A FOLHA
     janela, eventos, valores = sg.read_all_windows()
 
     # Adicionar Produto
     if eventos == 'Adicionar Produto':
+        eP, vP = '', ''
+        pC = listaProdutos(tabelas[1], 0)
         janelaA = janelaAdicionar(pC, eP, vP, pA)
+
+    # Fechar Programa(Adicionar)
+    if eventos == sg.WINDOW_CLOSED and janela == janelaA:
+        janelaA['comboProdutos'].Update('')
+        janelaA["quantidadeAdicionada"].Update('')
+        janelaA.hide()
+
+    # Vender Produto
+    if eventos == 'Vender Produto':
+        eP, vP = '', ''
+        pEV = listaProdutos(tabelas[1], 1)
+        janelaV = janelaVender(pEV, pAV, eP, vP)
+
+    # Fechar Programa(Vender)
+    if eventos == sg.WINDOW_CLOSED and janela == janelaV:
+        janelaV['tiposProdutos'].Update('')
+        janelaA["quantidadeAdicionadaV"].Update('')
+        janelaV.close()
 
     # Histórico
     if eventos == 'Histórico':
         janelaH = janelaHistorico(vEH, cEH)
+        # Fazer busca através de Data do calendário
+        # Ao selecionar ir pra outra página com informações e 2 botões com funções
 
     #Fechar Histórico
     if eventos == sg.WINDOW_CLOSED and janela == janelaH:
         janelaH.hide()
+        #Só fechar ta bom
 
     # Estatísticas
     if eventos == 'Estatísticas':
         janelaE = janelaEstatistica()
+        # Jogar informações na tela
 
     # Fechar Estatistica
     if eventos == sg.WINDOW_CLOSED and janela == janelaE:
         janelaE.hide()
+        #Só fecha mesmo
 
     # Editar Produto
     if eventos == 'Editar Produto':
+        pC = listaProdutos(tabelas[1], 0)
         janelaEP = janelaEditProduto(pC)
+        # Excluir Produto e Adicionar um novo com novas informações
 
     #Fechar Editar Produto
     if eventos == sg.WINDOW_CLOSED and janela == janelaEP:
         janelaEP.hide()
+        # Limpar os inputs
 
     # Estoque
     if eventos == 'Estoque':
         janelaEst = janelaEstoque([])
+        # Enviar Produtos em estoque
 
     #Fechar Editar Produto
     if eventos == sg.WINDOW_CLOSED and janela == janelaEst:
         janelaEst.hide()
+        # Só fecha
+
+    # Fechar Programa
+    if eventos == sg.WINDOW_CLOSED and janela == janelaP or eventos == 'Sair':
+        break
+
+    ###################################################################################################################
 
     # Selecionar Produto(Adicionar)
     if eventos == 'comboProdutos':
@@ -148,9 +208,7 @@ while True:
         pA = []
         janelaA.close()
 
-    # Fechar Programa(Adicionar)
-    if eventos == sg.WINDOW_CLOSED and janela == janelaA:
-        janelaA.hide()
+
 
     # Mudar Visibilidade Metodo Venda(Cadastro)
     if eventos == 'buttonMetodoVenda':
@@ -170,11 +228,7 @@ while True:
     if eventos == sg.WINDOW_CLOSED and janela == janelaC:
         janelaC.hide()
 
-    # Vender Produto
-    if eventos == 'Vender Produto':
-        eP, vP = '', ''
-        pEV = listaProdutos(tabelas[2], 1)
-        janela4 = janelaVender(pEV, pAV, eP, vP)
+
 
     # Carrinho(Vender)
     if eventos == 'continuarVCompra':
@@ -196,15 +250,8 @@ while True:
         pAV = []
         janelaV.hide()
 
-    # Fechar Programa(Cadastro)
-    if eventos == sg.WINDOW_CLOSED and janela == janelaC:
-        janelaC.close()
 
-    # Ir para janela Vender Produto
-    # if eventos == 'Vender Produto':
-    #     janela4 = janelaVender()
 
-    # Fechar Programa
-    if eventos == sg.WINDOW_CLOSED and janela == janelaP or eventos == 'Sair':
-        break
+
+
 janela.close()
