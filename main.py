@@ -5,6 +5,10 @@ from datetime import date
 from Adicionar import *
 from Cadastrar import *
 from Vender import *
+from Historico import *
+from Estatisticas import *
+from EditarProduto import *
+from Estoque import *
 
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
@@ -49,6 +53,7 @@ editTBidx = 0
 editTBn = 0
 nV = 0
 tPVP = tabelas[4]
+vEH = [] ; cEH = []
 # Layout
 def janelaInicial():
     sg.theme('Black')
@@ -65,7 +70,8 @@ def janelaInicial():
     return sg.Window('LUME AGROPET', icon='Arquivos/icon.ico', layout=layout, finalize=True)
 
 # Janela
-janela1, janela2, janela3, janela4, janelaPop = janelaInicial(), None, None, None, None
+janelaP, janelaA, janelaC, janelaV, janelaPop, janelaH, janelaE = janelaInicial(), None, None, None, None, None, None
+janelaEP, janelaEst = None, None
 
 # Ler os eventos
 while True:
@@ -73,7 +79,39 @@ while True:
 
     # Adicionar Produto
     if eventos == 'Adicionar Produto':
-        janela2 = janelaAdicionar(pC, eP, vP, pA)
+        janelaA = janelaAdicionar(pC, eP, vP, pA)
+
+    # Histórico
+    if eventos == 'Histórico':
+        janelaH = janelaHistorico(vEH, cEH)
+
+    #Fechar Histórico
+    if eventos == sg.WINDOW_CLOSED and janela == janelaH:
+        janelaH.hide()
+
+    # Estatísticas
+    if eventos == 'Estatísticas':
+        janelaE = janelaEstatistica()
+
+    # Fechar Estatistica
+    if eventos == sg.WINDOW_CLOSED and janela == janelaE:
+        janelaE.hide()
+
+    # Editar Produto
+    if eventos == 'Editar Produto':
+        janelaEP = janelaEditProduto(pC)
+
+    #Fechar Editar Produto
+    if eventos == sg.WINDOW_CLOSED and janela == janelaEP:
+        janelaEP.hide()
+
+    # Estoque
+    if eventos == 'Estoque':
+        janelaEst = janelaEstoque([])
+
+    #Fechar Editar Produto
+    if eventos == sg.WINDOW_CLOSED and janela == janelaEst:
+        janelaEst.hide()
 
     # Selecionar Produto(Adicionar)
     if eventos == 'comboProdutos':
@@ -96,8 +134,8 @@ while True:
 
     # Cadastro(Adicionar)
     if eventos == 'CadastroProduto':
-        janela3 = janelaCadastro(mdV, mdC)
-        janela2["comboProdutos"].Update(values=pC)
+        janelaC = janelaCadastro(mdV, mdC)
+        janelaA["comboProdutos"].Update(values=pC)
 
     # Excluir(Adicionar)
     if eventos == 'excluirTBEstoque':
@@ -108,11 +146,11 @@ while True:
         tabelas = FinalizarAd(t0P, tabelas, path)
         t0P = tabelas[0]
         pA = []
-        janela2.close()
+        janelaA.close()
 
     # Fechar Programa(Adicionar)
-    if eventos == sg.WINDOW_CLOSED and janela == janela2:
-        janela2.hide()
+    if eventos == sg.WINDOW_CLOSED and janela == janelaA:
+        janelaA.hide()
 
     # Mudar Visibilidade Metodo Venda(Cadastro)
     if eventos == 'buttonMetodoVenda':
@@ -125,12 +163,12 @@ while True:
     # Adicionar Produto Cadastro(Cadastro)
     if eventos == 'EfetuarCadastro':
         tabelas = EfCad(tabelas, valores, janela, path)
-        janela2['comboProdutos'].Update(pC)
-        janela3.hide()
+        janelaA['comboProdutos'].Update(pC)
+        janelaC.hide()
 
     # Fechar Programa(Cadastro)
-    if eventos == sg.WINDOW_CLOSED and janela == janela3:
-        janela3.hide()
+    if eventos == sg.WINDOW_CLOSED and janela == janelaC:
+        janelaC.hide()
 
     # Vender Produto
     if eventos == 'Vender Produto':
@@ -150,26 +188,23 @@ while True:
     if eventos == 'tiposProdutos':
         SePrV(tabelas, valores, janela)
 
-    # Finalizar(Adicionar)
+    # Finalizar(Venda)
     if eventos == "FinalizarVenda":
         tabelas = FinalizarV(tPVP, tabelas, path)
         tPVP = tabelas[4]
         nV += 1
         pAV = []
-        janela4.close()
+        janelaV.hide()
 
     # Fechar Programa(Cadastro)
-    if eventos == sg.WINDOW_CLOSED and janela == janela4:
-        janela4.close()
-
-
-
+    if eventos == sg.WINDOW_CLOSED and janela == janelaC:
+        janelaC.close()
 
     # Ir para janela Vender Produto
     # if eventos == 'Vender Produto':
     #     janela4 = janelaVender()
 
     # Fechar Programa
-    if eventos == sg.WINDOW_CLOSED and janela == janela1 or eventos == 'Sair':
+    if eventos == sg.WINDOW_CLOSED and janela == janelaP or eventos == 'Sair':
         break
 janela.close()
