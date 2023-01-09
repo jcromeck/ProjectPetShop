@@ -59,25 +59,28 @@ except FileNotFoundError as fnfe:
     print("\n\nEstoque\n"+str(tabelas[6]))
 
 # Código
-tabela_vendasProv = tabela_vendas
+tabela_vendasProv = tabelas[3]
 produtosAVender = []
 data_em_texto = date.today().strftime('%d/%m/%Y')
 # Adicionar
-pA = []
+pA = [] # Perfeito
+pCProv = tabelas[4]
+idC = 1 # Listar Ultimo id de Compras +1
 # Vender
-pAV = []
+pAV = []# Perfeito
 # Histórico
 vEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
 cEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
 
 vT=0 ; vTV = 0
-t0P = tabelas[0]; vI = False; vBC = False
-mdV = listaMetodos(tabelas[3])
+t0P = tabelas[1]; vI = False; vBC = False
+mdV = listaMetodos(tabelas[0])
 mdC = ['Outro produto do estoque'] + mdV
 editTBidx = 0
 editTBn = 0
 nV = 0
 tPVP = tabelas[4]
+
 # Layout
 def janelaInicial():
     sg.theme('Black')
@@ -98,7 +101,7 @@ janelaP, janelaA, janelaC, janelaV, janelaPop, janelaH, janelaE = janelaInicial(
 janelaEP, janelaEst = None, None
 
 # Ler os eventos
-while True:                 # MUDAR O EXCEL BACKUP PRA NOVAS SHEETS DE ACORDO COM A FOLHA
+while True:
     janela, eventos, valores = sg.read_all_windows()
 
     # Adicionar Produto
@@ -176,40 +179,34 @@ while True:                 # MUDAR O EXCEL BACKUP PRA NOVAS SHEETS DE ACORDO CO
     # Selecionar Produto(Adicionar)
     if eventos == 'comboProdutos':
         eP, vP = SePr(tabelas, valores, janela)
+        #Feito
 
     # Carrinho(Adicionar)
     if eventos == 'continuarCompra':
-        janelaPop, quant, idx = CarAd(tabelas, valores, janela, pC, eP)
-        if quant != None:
-            vT, t0P, pA = CardAdc(tabelas, valores, janela, idx, quant, vT, pA, t0P)
+        pA, vT, pCProv = CarAd(tabelas, valores, janela, pCProv, pC, pA, vT, idC)
+        #Mudar só o Id
 
     # Editar(Adicionar)
     if eventos == 'editarEstoque':
         vI, tabelas, vP, eP = EditE(tabelas, path, janela, valores, vI, vP, eP)
-
-    # Popup
-    if eventos == 'concluirPopup':
-        eP, t0P = popC(tabelas, t0P, valores, janela)
-        vT, t0P, pA = CardAdc(tabelas, valores, janela, idx, quant, vT, pA, t0P)
+        #Feito
 
     # Cadastro(Adicionar)
     if eventos == 'CadastroProduto':
         janelaC = janelaCadastro(mdV, mdC)
-        janelaA["comboProdutos"].Update(values=pC)
+        #Feito
 
     # Excluir(Adicionar)
     if eventos == 'excluirTBEstoque':
-        vT, t0P, pA = ExC(pA, janela, valores, vT, t0P)
+        vT, pCProv, pA = ExC(tabelas, pA, janela, valores, vT, pCProv)
+        #Feito
 
     # Finalizar(Adicionar)
     if eventos == 'Concluir':
-        tabelas = FinalizarAd(t0P, tabelas, path)
-        t0P = tabelas[0]
+        tabelas = FinalizarAd(pCProv, tabelas, path)
         pA = []
         janelaA.close()
-
-
-
+############################################## A PARTIR DAQUI ##################################
     # Mudar Visibilidade Metodo Venda(Cadastro)
     if eventos == 'buttonMetodoVenda':
         vBC = visCad(vBC, janela)
@@ -227,8 +224,6 @@ while True:                 # MUDAR O EXCEL BACKUP PRA NOVAS SHEETS DE ACORDO CO
     # Fechar Programa(Cadastro)
     if eventos == sg.WINDOW_CLOSED and janela == janelaC:
         janelaC.hide()
-
-
 
     # Carrinho(Vender)
     if eventos == 'continuarVCompra':
@@ -249,9 +244,5 @@ while True:                 # MUDAR O EXCEL BACKUP PRA NOVAS SHEETS DE ACORDO CO
         nV += 1
         pAV = []
         janelaV.hide()
-
-
-
-
 
 janela.close()

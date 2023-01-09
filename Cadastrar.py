@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 from tkinter import messagebox
 from Funções import writerE
-
+# Janela
 def janelaCadastro(metodosdeVenda,metodosdeCompra):
     sg.theme('Black')
     layout1 = [
@@ -29,37 +29,40 @@ def janelaCadastro(metodosdeVenda,metodosdeCompra):
         [sg.HSep()],
         [sg.Text(' ')],
         [sg.Button("+", key='buttonMetodoVenda', expand_x=True, button_color='#bee821')],
-        [sg.Text("Métodos", expand_x=True, justification='center', visible=False)],
+        [sg.Text("Insira um novo Método", key='TnM', expand_x=True, justification='right', visible=False)],
         [sg.InputText(key='novoMetodoVendaInput', visible=False),
          sg.Button("+", key="novoMetodoVenda", visible=False, button_color='#bee821')],
         [sg.Button("EfetuarCadastro", button_color='#9853d1')]
     ]
     return sg.Window('Cadastrar Produtos', layout=layoutP, finalize=True)
-
+# Visualização Cadastrar Método
 def visCad(visBCad, j):
     if visBCad == False:
         j["novoMetodoVendaInput"].Update("")
+        j["TnM"].Update(visible=True)
         j["novoMetodoVendaInput"].Update(visible=True)
         j["novoMetodoVenda"].Update(visible=True)
         visBCad = True
     else:
+        j["TnM"].Update(visible=False)
         j["novoMetodoVendaInput"].Update(visible=False)
         j["novoMetodoVenda"].Update(visible=False)
         visBCad = False
     return visBCad
-
+# Cadastrar Método Novo
 def NewM(tabelas, v, j, metodosdeVenda, path):
     metodosdeVenda.append(v['novoMetodoVendaInput'])
     metodosdeCompra = ['Outro produto do estoque'] + metodosdeVenda
-    new_row = [{'Métodos': v["novoMetodoVendaInput"]}]
-    tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
+    new_row = [{'Método': v["novoMetodoVendaInput"]}]
+    tabelas[0] = tabelas[0].append(new_row, ignore_index=True)
     writerE(tabelas, path)
+    j["TnM"].Update(visible=False)
     j["novoMetodoVendaInput"].Update(visible=False)
     j["novoMetodoVenda"].Update(visible=False)
     j['metodoVenda'].Update(values=metodosdeVenda)
     j['metodoCompra'].Update(values=metodosdeCompra)
     return metodosdeVenda, metodosdeCompra, tabelas
-
+# Efetuar Cadastro
 def EfCad(tabelas, v, j, path):
     current = v['metodoVenda']
     current2 = v['metodoCompra']
@@ -83,7 +86,7 @@ def EfCad(tabelas, v, j, path):
                                'Método_Venda': j['metodoVenda'].get()[0],
                                'Método_Compra': j["metodoCompra"].get()[0],
                                'ReporEstoquepProd': outroProduto}
-                    tabelas[2] = tabelas[2].append(new_row, ignore_index=True)
+                    tabelas[1] = tabelas[1].append(new_row, ignore_index=True)
                     writerE(tabelas, path)
                     return tabelas
                 except ValueError as ve:
