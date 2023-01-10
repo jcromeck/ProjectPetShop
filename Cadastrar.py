@@ -29,7 +29,7 @@ def janelaCadastro(metodosdeVenda,metodosdeCompra):
         [sg.HSep()],
         [sg.Text(' ')],
         [sg.Button("+", key='buttonMetodoVenda', expand_x=True, button_color='#bee821')],
-        [sg.Text("Insira um novo Método", key='TnM', expand_x=True, justification='right', visible=False)],
+        [sg.Text("Insira um novo Método", key='TnM', expand_x=True, justification='left', visible=False)],
         [sg.InputText(key='novoMetodoVendaInput', visible=False),
          sg.Button("+", key="novoMetodoVenda", visible=False, button_color='#bee821')],
         [sg.Button("EfetuarCadastro", button_color='#9853d1')]
@@ -88,7 +88,6 @@ def EfCad(tabelas, v, j, path):
                                'ReporEstoquepProd': outroProduto}
                     tabelas[1] = tabelas[1].append(new_row, ignore_index=True)
                     writerE(tabelas, path)
-                    return tabelas
                 except ValueError as ve:
                     messagebox.showwarning("Erro ao Cadastrar",
                                            'O campo Valor do Produto apenas aceita Números')
@@ -98,3 +97,4 @@ def EfCad(tabelas, v, j, path):
     else:
         messagebox.showwarning("Preencha Todos os campos",
                                'Preencha o campo de Método de Venda')
+    return tabelas

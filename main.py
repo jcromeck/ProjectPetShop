@@ -68,6 +68,7 @@ pCProv = tabelas[4]
 idC = 1 # Listar Ultimo id de Compras +1
 # Vender
 pAV = []# Perfeito
+idV = 10000 #Listar Ultimo id de Vendas +1
 # Histórico
 vEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
 cEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
@@ -98,7 +99,7 @@ def janelaInicial():
 
 # Janela
 janelaP, janelaA, janelaC, janelaV, janelaPop, janelaH, janelaE = janelaInicial(), None, None, None, None, None, None
-janelaEP, janelaEst = None, None
+janelaEP, janelaEst, janelaV2 = None, None, None
 
 # Ler os eventos
 while True:
@@ -125,7 +126,7 @@ while True:
     # Fechar Programa(Vender)
     if eventos == sg.WINDOW_CLOSED and janela == janelaV:
         janelaV['tiposProdutos'].Update('')
-        janelaA["quantidadeAdicionadaV"].Update('')
+        janelaV["quantidadeAdicionadaV"].Update('')
         janelaV.close()
 
     # Histórico
@@ -174,8 +175,6 @@ while True:
     if eventos == sg.WINDOW_CLOSED and janela == janelaP or eventos == 'Sair':
         break
 
-    ###################################################################################################################
-
     # Selecionar Produto(Adicionar)
     if eventos == 'comboProdutos':
         eP, vP = SePr(tabelas, valores, janela)
@@ -184,7 +183,7 @@ while True:
     # Carrinho(Adicionar)
     if eventos == 'continuarCompra':
         pA, vT, pCProv = CarAd(tabelas, valores, janela, pCProv, pC, pA, vT, idC)
-        #Mudar só o Id
+        #Feito
 
     # Editar(Adicionar)
     if eventos == 'editarEstoque':
@@ -199,50 +198,96 @@ while True:
     # Excluir(Adicionar)
     if eventos == 'excluirTBEstoque':
         vT, pCProv, pA = ExC(tabelas, pA, janela, valores, vT, pCProv)
-        #Feito
+        #Confirmar funcionamento
 
     # Finalizar(Adicionar)
     if eventos == 'Concluir':
-        tabelas = FinalizarAd(pCProv, tabelas, path)
+        tabelas = FinalizarAd(pCProv, tabelas, path, idC, data_em_texto)
         pA = []
         janelaA.close()
-############################################## A PARTIR DAQUI ##################################
+
     # Mudar Visibilidade Metodo Venda(Cadastro)
     if eventos == 'buttonMetodoVenda':
         vBC = visCad(vBC, janela)
+        #Feito
 
     # Confirmar novo Método de Venda(Cadastro)
     if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
         mdV, mdC, tabelas = NewM(tabelas, valores, janela, mdV, path)
+        #Feito
 
     # Adicionar Produto Cadastro(Cadastro)
     if eventos == 'EfetuarCadastro':
         tabelas = EfCad(tabelas, valores, janela, path)
         janelaA['comboProdutos'].Update(pC)
         janelaC.hide()
+        #Feito
 
     # Fechar Programa(Cadastro)
     if eventos == sg.WINDOW_CLOSED and janela == janelaC:
         janelaC.hide()
+        #Feito
+
+    # Selecionar Produto(Vender)
+    if eventos == 'tiposProdutos':
+        ePV, vPV = SePrV(tabelas, valores, janela)
+        #Feito
 
     # Carrinho(Vender)
     if eventos == 'continuarVCompra':
         vTV, tPVP, pAV = CarVenda(tabelas, valores, pEV, janela, pAV, vTV, tPVP, nV)
+        # Validar se tem no estoque
 
-    #Excluir Elemento Table
+    # Editar(Vender)
+    if eventos == 'editarEstoqueV':
+        vIV, tabelas, vPV, ePV = EditEV(tabelas, path, janela, valores, vIV, vPV, ePV)
+        # Feito
+
+    #Excluir Elemento Table(Vender)
     if eventos == 'excluirTBEstoqueV':
         vTV, tPVP, pAV = ExcV(pAV, janela, valores, vTV, tPVP)
-
-    #Selecionar Produto(Vender)
-    if eventos == 'tiposProdutos':
-        SePrV(tabelas, valores, janela)
+        #Conferir pra ver se ta certo
 
     # Finalizar(Venda)
     if eventos == "FinalizarVenda":
-        tabelas = FinalizarV(tPVP, tabelas, path)
-        tPVP = tabelas[4]
-        nV += 1
-        pAV = []
-        janelaV.hide()
+        if pAV == []:
+            janelaV2 = janelaVender2(vTV)
+        else:
+            messagebox.showwarning("Erro ao Finalizar",
+                                   "Não há produtos a vender para poder Finalizar")
+
+################################################## A PARTIR DAQUI ####################################################
+
+    #Finalizar Parte 2
+    if eventos == 'concluirV':
+        if valores['comboPag'] != []:
+            tabelas = FinalizarVpt2(valores, tPVP, tabelas, path, data_em_texto, idV)
+            idV += 1
+            janelaV2.close()
+            janelaV.close()
+        else:
+            messagebox.showwarning("Erro ao Finalizar",
+                                   "Selecione o Método de venda")
+
+    #Atualizar Desconto (Finalizar Pt2)
+    if eventos == 'desconto':
+        vTD = AtualizarDesconto(valores, janela, vTV)
+        #Finalizado
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 janela.close()

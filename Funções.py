@@ -36,19 +36,13 @@ def numVenda(tabela_vendas):
         my_list = str(int(rows.NumVenda)+1)
     return my_list
 
-def listaProdutosV1(tabelas, idx, quant, n):
+def listaProdutosV1(tabela_produtos, idx, quant):
     my_list = []
     y = []
-    if n == 0:
-        for index, rows in tabelas[2].iterrows():
-            my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Compra + "-" + str(quant) + "-" + str(
-                float(rows.Valor_Venda)) + "-" + str(float(rows.Valor_Venda) * float(quant)))
-        y = my_list[int(idx)].split("-")
-    if n == 1:
-        for index, rows in tabelas[2].iterrows():
-            my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Venda + "-" + str(quant) + "-" + str(
-                float(rows.Valor_Venda)) + "-" + str(float(rows.Valor_Compra)))
-        y = my_list[int(idx)].split("-")
+    for index, rows in tabela_produtos.iterrows():
+        my_list.append(rows.Produto + "-" + rows.Marca + "-" + rows.Método_Venda + "-" + str(quant) + "-" + str(
+            float(rows.Valor_Venda)) + "-" + str(float(rows.Valor_Venda) * float(quant)))
+    y = my_list[int(idx)].split("-")
     return y
 # Perfeito
 def writerE(tabelas, path):

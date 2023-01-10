@@ -33,7 +33,7 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
     ]
     layoutC = [
         [sg.Text("Valor Total da Compra:", justification='right', expand_x=True)],
-        [sg.Text('',key='valorTotal', justification='right', expand_x=True,text_color='Red')]
+        [sg.Text('', key='valorTotal', justification='right', expand_x=True,text_color='Red')]
     ]
     layoutP = [
         [sg.Column(layoutA),
@@ -125,19 +125,19 @@ def CarAd(t, v, j, p_ComprasProv, produtosCadastrados, produtosAdicionados, valo
                 else:
                     messagebox.showwarning("Erro ao Adicionar",
                                            'Valor abaixo de 0 não é aceito')
-                    return None, None, None
+                    return produtosAdicionados, valorTotal, p_ComprasProv
             except ValueError as ve:
                 messagebox.showwarning("Erro ao Adicionar",
                                        'O campo Quantidade apenas aceita Números')
-                return None, None, None
+                return produtosAdicionados, valorTotal, p_ComprasProv
         else:
             messagebox.showwarning("Erro ao Adicionar",
                                    'Valor inválido no campo "Quantidade"')
-            return None, None, None
+            return produtosAdicionados, valorTotal, p_ComprasProv
     else:
         messagebox.showwarning("Erro ao Adicionar",
                                'Selecione um produto para adicionar')
-        return None, None, None
+        return produtosAdicionados, valorTotal, p_ComprasProv
 # Editar Estoque
 def EditE(tabelas, path, j, v, visInput, valorP, estoqueP):
     if visInput == False:  # ABRINDO INPUT
@@ -172,7 +172,7 @@ def EditE(tabelas, path, j, v, visInput, valorP, estoqueP):
         visInput = False
     return visInput, tabelas, valorP, estoqueP
 # Excluir Linha Table
-def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
+def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv, id):
     data_selected = [produtosAdicionados[row] for row in v['-TB-']]
     if data_selected == []:
         messagebox.showwarning("Impossível Deletar Dado",
@@ -185,6 +185,8 @@ def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
                     produtosAdicionados[row][3] == data_selected[0][3] and \
                     produtosAdicionados[row][4] == data_selected[0][4] and \
                     produtosAdicionados[row][5] == data_selected[0][5]:
+                print(data_selected)
+                print(produtosAdicionados)
                 condicao = (t[4]['Produto'] == data_selected[0][0]) & (t[4]['Marca'] == data_selected[0][1]) & (
                             t[4]['Método'] == data_selected[0][2]) & (t[4]['Quantidade'] == data_selected[0][3]) & (
                             t[4]['Valor_Un'] == data_selected[0][4]) & (t[4]['Valor_Total'] == data_selected[0][5])
@@ -198,14 +200,16 @@ def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
     return valorTotal, p_ComprasProv, produtosAdicionados
 # Finalizar
 def FinalizarAd(p_ComprasProv, tabelas, path, id, data):
+    # Adicionar P_Compras
     tabelas[4] = p_ComprasProv
     condicao = (str(tabelas[4]['ID']) == str(id))
     quant = tabelas[4].loc[condicao, :].sum()
     vT = tabelas[4].loc[condicao, 'Valor_Total'].sum()
+    # Adicionar Compras
     new_row = {'ID': id,
                'QItens': quant,
                'Data': data,
                'Valor_Total': vT}
-    tabelas[4] = tabelas[4].append(new_row, ignore_index=True)
+    tabelas[5] = tabelas[5].append(new_row, ignore_index=True)
     writerE(tabelas, path)
     return tabelas

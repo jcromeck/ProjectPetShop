@@ -44,7 +44,7 @@ def janelaVender(produtosEstoque, produtosAVender, estoqueP, valorP):
         [sg.Column(layout1), sg.Column(layout2)]
     ]
     return sg.Window('Vender Produtos', layout=layout, finalize=True)
-
+# Carrinho
 def CarVenda(t, v, pE, j, pAV, vTV, tPVP, nV):
     atual = v['tiposProdutos']
     if atual in pE:
@@ -53,9 +53,10 @@ def CarVenda(t, v, pE, j, pAV, vTV, tPVP, nV):
                 if int(v['quantidadeAdicionadaV']) >= 0:
                     quant = int(v['quantidadeAdicionadaV'])
                     provisorio = v['tiposProdutos'].split("-")
-                    condicao = (t[2]['Produto'] == provisorio[0]) & (t[2]['Marca'] == provisorio[1]) & (t[2]['Método_Venda'] == provisorio[2])
-                    indice = t[2].loc[condicao, :].index[0]
-                    produto = listaProdutosV1(t, indice, quant, 0)
+                    condicao = (t[1]['Produto'] == provisorio[0]) & (t[1]['Marca'] == provisorio[1]) & (
+                            t[1]['Método_Venda'] == provisorio[2])
+                    indice = t[1].loc[condicao, :].index[0]
+                    produto = listaProdutosV1(t[1], indice, quant)
                     produtoAdicionado = [produto[0], produto[1], produto[2], produto[3],
                                          produto[4] + " R$", produto[5] + " R$"]
                     pAV.append(produtoAdicionado)
@@ -64,75 +65,170 @@ def CarVenda(t, v, pE, j, pAV, vTV, tPVP, nV):
                     j["valorTotalV"].Update('+' + str(vTV) + ' R$')
                     j["quantidadeAdicionadaV"].Update("")
                     j["tiposProdutos"].Update("")
-                    produtosProv = listaProdutosV1(t, indice, quant, 0)
-                    new_row = {'NVenda': nV,
+                    produtosProv = listaProdutosV1(t[1], indice, quant)
+                    #P_Vendas
+                    new_row = {'ID': nV,
                                'Produto': produtosProv[0],
                                'Marca': produtosProv[1],
-                               'Valor': produtosProv[4],
                                'Método': produtosProv[2],
                                'Quantidade': produtosProv[3],
+                               'Valor_Un': produtosProv[4],
                                'Valor_Total': produtosProv[5]}
-                    tPVP = tPVP.append(new_row, ignore_index=True)
-                    return vTV, tPVP, pAV
+                    tPVP.append(new_row, ignore_index=True)
                 else:
                     messagebox.showwarning("Erro ao Adicionar",
                                            'Valor abaixo de 0 não é aceito')
-                    return None, None, None
             except ValueError as ve:
                 messagebox.showwarning("Erro ao Adicionar",
                                        'O campo Quantidade apenas aceita Números')
-                return None, None, None
         else:
             messagebox.showwarning("Erro ao Adicionar",
                                    'Valor inválido no campo "Quantidade"')
-            return None, None, None
     else:
         messagebox.showwarning("Erro ao Adicionar",
                                'Selecione um produto para adicionar')
-        return None, None, None
-
+    return vTV, tPVP, pAV
+# Selecionar Combo
 def SePrV(tabelas, v, janela):
     provisorio = v['tiposProdutos'].split("-")
-    condicao = (tabelas[2]['Produto'] == provisorio[0]) & (
-            tabelas[2]['Marca'] == provisorio[1])
-    condicao2 = (tabelas[0]['Produto'] == provisorio[0]) & (
-            tabelas[0]['Marca'] == provisorio[1])
-    indice = tabelas[2].loc[condicao, :].index[0]
+    condicao = (tabelas[1]['Produto'] == provisorio[0]) & (tabelas[1]['Marca'] == provisorio[1]) & (
+            tabelas[1]['Método_Venda'] == provisorio[2])
+    condicao2 = (tabelas[6]['Produto'] == provisorio[0]) & (tabelas[6]['Marca'] == provisorio[1]) & (
+            tabelas[6]['Método_Venda'] == provisorio[2])
+    somaV = tabelas[1].loc[condicao, :]
+    somaV = somaV['Valor_Venda'].sum()
     try:
-        indice2 = tabelas[0].loc[condicao2, :].index[0]
-        estoqueP = tabelas[0].loc[indice2, 'Quantidade']
+        somaE = tabelas[6].loc[condicao2, :]
+        estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
-    valorP = tabelas[2].loc[indice, 'Valor_Venda']
+    valorP = somaV/len(tabelas[1].loc[condicao, :])
     janela['estoqueTVModificado'].Update(estoqueP)
     janela['valorPTVModificado'].Update(valorP)
     janela['estoqueVModificado'].Update(estoqueP)
     janela['valorProdutoVModificado'].Update(valorP)
     return estoqueP, valorP
-
-def ExcV(pAV, j, v, vTV, tPVP):
+# Editar Estoque e Valor
+def EditEV(tabelas, path, j, v, visInputV, valorP, estoqueP):
+    if visInputV == False:  # ABRINDO INPUT
+        j['estoqueTVModificado'].Update(estoqueP, visible=False)
+        j['estoqueVModificado'].Update(estoqueP, visible=True)
+        j['valorPTVModificado'].Update(valorP, visible=False)
+        j['valorProdutoVModificado'].Update(valorP, visible=True)
+        visInputV = True
+    else:  # ABRINDO TEXT
+        estoqueP = int(v['estoqueVModificado'])
+        valorP = int(v['valorProdutoVModificado'])
+        provisorio = v['tiposProdutos'].split("-")
+        condicao = (tabelas[1]['Produto'] == provisorio[0]) & (tabelas[1]['Marca'] == provisorio[1]) & (
+                    tabelas[1]['Método_Venda'] == provisorio[2])
+        condicao2 = (tabelas[6]['Produto'] == provisorio[0]) & (tabelas[6]['Marca'] == provisorio[1]) & (
+                    tabelas[6]['Método_Compra'] == provisorio[2]) & (tabelas[6]['Método_Venda'] == provisorio[2])
+        indice = tabelas[1].loc[condicao, :]
+        tabelas[1].at[indice, 'Valor_Venda'] = valorP
+        try:
+            if estoqueP != '0':
+                indice2 = tabelas[6].loc[condicao2, :].index[0]
+                tabelas[6].at[indice2, 'Quantidade'] = estoqueP
+        except IndexError as ie:
+            messagebox.showwarning("Erro ao Editar Estoque",
+                                   'Produto nunca antes adicionado.\nPrecisa adicionar uma vez antes de editar seu estoque')
+            estoqueP = '0'
+        writerE(tabelas, path)
+        j['estoqueTVModificado'].Update(estoqueP, visible=True)
+        j['estoqueVModificado'].Update(estoqueP, visible=False)
+        j['valorPTVModificado'].Update(valorP, visible=True)
+        j['valorProdutoVModificado'].Update(valorP, visible=False)
+        visInputV = False
+    return visInputV, tabelas, valorP, estoqueP
+# Excluir Elemento Table
+def ExcV(t, pAV, j, v, vTV, tPVP, id):
     data_selected = [pAV[row] for row in v['tV_produtos']]
     if data_selected == []:
         messagebox.showwarning("Impossível Deletar Dado",
                                'Precisa Selecionar o Dado na Tabela antes de Deletar')
-        return vTV, tPVP, pAV
     else:
         for row in range(len(pAV)):
-            if pAV[row][0] == data_selected[0][0] and \
-                    pAV[row][1] == data_selected[0][1] and \
-                    pAV[row][2] == data_selected[0][2] and \
-                    pAV[row][3] == data_selected[0][3] and \
-                    pAV[row][4] == data_selected[0][4] and \
-                    pAV[row][5] == data_selected[0][5]:
-                tPVP.drop(row)
+            if pAV[row][0] == data_selected[0][0] and pAV[row][1] == data_selected[0][1] and \
+               pAV[row][2] == data_selected[0][2] and pAV[row][3] == data_selected[0][3] and \
+               pAV[row][4] == data_selected[0][4] and pAV[row][5] == data_selected[0][5]:
+                condicao = (t[2]['Produto'] == data_selected[0][0]) & (t[2]['Marca'] == data_selected[0][1]) & (
+                            t[2]['Método'] == data_selected[0][2]) & (t[2]['Quantidade'] == data_selected[0][3]) & (
+                            t[2]['Valor_Un'] == data_selected[0][4]) & (t[2]['Valor_Total'] == data_selected[0][5])
+                indice = t[2].loc[condicao, :].index[0]
+                tPVP.drop(indice)
                 pAV.pop(row)
         j['tV_produtos'].Update(values=pAV)
         xProv = data_selected[0][5].split(" ")
         vTV -= float(xProv[0])
         j["valorTotalV"].Update('+' + str(vTV) + ' R$')
-        return vTV, tPVP, pAV
+    return vTV, tPVP, pAV
 
-def FinalizarV(tPVP, tabelas, path):
-    tabelas[4] = tPVP
+def janelaVender2(valorTotalVenda):
+    coluna1 = [
+        [sg.Text('', size=(30, 1), justification='Right')],
+        [sg.Text('Valor Total: '), sg.Text(valorTotalVenda, text_color='green', key='vTV')],
+        [sg.Text('', expand_x=True, justification='Right')],
+        [sg.Text('Desconto: '), sg.InputText(key='desconto', enable_events=True, size=(10, 1))],
+        [sg.Text('', expand_x=True, justification='Right')],
+        [sg.Checkbox('Frete', key='frete', enable_events=True)],
+        [sg.Text('', expand_x=True, justification='Right')],
+        [sg.Text('Valor Descontado: '), sg.Text('', key='valorD', text_color='red')],
+        [sg.Text('Valor Total com Desconto: '), sg.Text('', key='valorTcD', text_color='green')]
+    ]
+    coluna2 = [
+        [sg.Text('Método de Pagamento: ')],
+        [sg.Combo(['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Dinheiro'], key='comboPag')],
+        [sg.Text('', expand_x=True, justification='Right')],
+        [sg.Text('Comentários: ')],
+        [sg.Multiline('', key='mT', no_scrollbar=True, size=(30, 7))]
+    ]
+    layoutP = [
+        [sg.Column(coluna1), sg.Column(coluna2)],
+        [sg.Button('Concluir', key='concluirV', expand_x=True, button_color='#9853d1')]
+    ]
+    return sg.Window('Finalizar Venda', layout=layoutP, finalize=True)
+
+def AtualizarDesconto(v, j, vTV):
+    try:
+        if v['desconto'] != '':
+            desconto = int(v['desconto'])
+        else:
+            desconto = 0
+        if desconto < 0:
+            messagebox.showwarning("Erro no campo Desconto",
+                               'Apenas é aceito números positivos')
+            j['desconto'].Update('')
+        j['valorD'].Update(desconto)
+        vTD = float(vTV) - float(desconto)
+        j['valorTcD'].Update(str(vTD))
+        return vTD
+    except (TypeError, ValueError) as te:
+        messagebox.showwarning("Erro no campo Desconto",
+                               'Apenas é aceito números no campo Desconto')
+        j['desconto'].Update('')
+        j['valorD'].Update('')
+        j['valorTcD'].Update('')
+        return vTV
+
+def FinalizarVpt2(v, tPVP, tabelas, path, data, id, valorTotalcDesconto):
+    # Atualizar P_Vendas
+    tabelas[2] = tPVP
+    condicao = (str(tabelas[2]['ID']) == str(id))
+    quant = tabelas[2].loc[condicao, :].sum()
+    if v['frete'] == True:
+        frete = 'Sim'
+    else:
+        frete = 'Não'
+    # Atualizar Vendas
+    new_row = {'ID': id,
+               'QItens': quant,
+               'Frete': frete,
+               'Desconto': str(float(v['desconto'])),
+               'MétodoPagamento': v['comboPag'],
+               'Comentários': v['mT'],
+               'Data': data,
+               'Valor_Total': valorTotalcDesconto}
+    tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
     writerE(tabelas, path)
     return tabelas
