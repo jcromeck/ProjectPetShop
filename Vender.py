@@ -4,6 +4,12 @@ from Funções import listaProdutosV, listaMetodos, listaProdutosV1, writerE
 
 def janelaVender(produtosEstoque, produtosAVender, estoqueP, valorP):
     sg.theme('Black')
+    colunaV = [
+        [sg.ReadFormButton('', key='voltarV', image_filename='Arquivos/Retornar.png', border_width=0,
+                           image_subsample=1,
+                           image_size=(43, 43), button_color='black'), sg.Text('', expand_x=True)],
+        [sg.Text('', size=(0, 18))]
+    ]
     layoutC1 = [
         [sg.Text('Estoque: ')],
         [sg.Text(estoqueP, expand_x=True, justification='center', key='estoqueTVModificado'),
@@ -18,6 +24,7 @@ def janelaVender(produtosEstoque, produtosAVender, estoqueP, valorP):
         [sg.Column(layoutC1), sg.Column(layoutC2)]
     ]
     layout1 = [
+        [sg.Text("")],
         [sg.Text("Produto")],
         [sg.Combo(produtosEstoque, key="tiposProdutos", enable_events=True)],
         [sg.Text("")],
@@ -41,7 +48,7 @@ def janelaVender(produtosEstoque, produtosAVender, estoqueP, valorP):
         [sg.Text(key='valorTotalV', text_color='green', justification='right', expand_x=True)]
     ]
     layout = [
-        [sg.Column(layout1), sg.Column(layout2)]
+        [sg.Column(colunaV), sg.Column(layout1), sg.Column(layout2)]
     ]
     return sg.Window('Vender Produtos', layout=layout, finalize=True)
 # Carrinho
@@ -165,12 +172,17 @@ def ExcV(t, pAV, j, v, vTV, tPVP, id):
     return vTV, tPVP, pAV
 
 def janelaVender2(valorTotalVenda):
+    colunaV = [
+        [sg.ReadFormButton('', key='voltarV2', image_filename='Arquivos/Retornar.png', border_width=0,
+                           image_subsample=1,
+                           image_size=(43, 43), button_color='black'), sg.Text('', expand_x=True)],
+        [sg.Text('', size=(0, 12))]
+    ]
     coluna1 = [
         [sg.Text('', size=(30, 1), justification='Right')],
         [sg.Text('Valor Total: '), sg.Text(valorTotalVenda, text_color='green', key='vTV')],
         [sg.Text('', expand_x=True, justification='Right')],
         [sg.Text('Desconto: '), sg.InputText(key='desconto', enable_events=True, size=(10, 1))],
-        [sg.Text('', expand_x=True, justification='Right')],
         [sg.Checkbox('Frete', key='frete', enable_events=True)],
         [sg.Text('', expand_x=True, justification='Right')],
         [sg.Text('Valor Descontado: '), sg.Text('', key='valorD', text_color='red')],
@@ -179,12 +191,11 @@ def janelaVender2(valorTotalVenda):
     coluna2 = [
         [sg.Text('Método de Pagamento: ')],
         [sg.Combo(['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Dinheiro'], key='comboPag')],
-        [sg.Text('', expand_x=True, justification='Right')],
         [sg.Text('Comentários: ')],
         [sg.Multiline('', key='mT', no_scrollbar=True, size=(30, 7))]
     ]
     layoutP = [
-        [sg.Column(coluna1), sg.Column(coluna2)],
+        [sg.Column(colunaV), sg.Column(coluna1), sg.Column(coluna2)],
         [sg.Button('Concluir', key='concluirV', expand_x=True, button_color='#9853d1')]
     ]
     return sg.Window('Finalizar Venda', layout=layoutP, finalize=True)

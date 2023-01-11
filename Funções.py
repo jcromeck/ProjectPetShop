@@ -61,3 +61,53 @@ def listaMetodos(tabela_metodos):
         my_list.append(rows.Método)
     return my_list
 
+def listarVC(tabela_vendas):
+    my_list = []
+    y = []
+    x = []
+    for index, rows in tabela_vendas.iterrows():
+        x = str(rows.Data).split(" ")
+        x = x[0].split("-")
+        dataS = x[2] + "/" + x[1] + "/" + x[0]
+        my_list.append(rows.ID)
+        my_list.append(dataS)
+        my_list.append(rows.QItens)
+        my_list.append(rows.Valor_Total)
+        y.append(my_list)
+        my_list = []
+    return y
+
+def listarBusca(tabelas, id, quant, data, vT):
+    venda = []
+    vendaP = []
+    compra = []
+    compraP = []
+    y = []
+    for index, rows in tabelas[3].iterrows():
+        y = str(rows.Data).split(" ")
+        y = y[0].split("-")
+        dataS = y[2]+"/"+y[1]+"/"+y[0]
+        if str(id) == str(rows.ID):
+            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        if str(quant) == str(rows.QItens):
+            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        if str(data) == str(rows.Data):
+            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        if str(vT) == str(rows.Valor_Total):
+            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        vendaP.append(venda)
+    for index, rows in tabelas[5].iterrows():
+        y = str(rows.Data).split(" ")
+        y = y[0].split("-")
+        dataS = y[2] + "/" + y[1] + "/" + y[0]
+        if str(id) == str(rows.ID):
+            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        if str(quant) == str(rows.QItens):
+            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        if str(data) == str(rows.Data):
+            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        if str(vT) == str(rows.Valor_Total):
+            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+        compraP.append(compra)
+    return vendaP, compraP
+

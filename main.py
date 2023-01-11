@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import pandas as pd
-from Funções import listaProdutos
+from Funções import listaProdutos, listarVC, listarBusca
 from datetime import date
 from Adicionar import *
 from Cadastrar import *
@@ -131,6 +131,8 @@ while True:
 
     # Histórico
     if eventos == 'Histórico':
+        vEH = listarVC(tabelas[3])
+        cEH = listarVC(tabelas[5])
         janelaH = janelaHistorico(vEH, cEH)
         # Fazer busca através de Data do calendário
         # Ao selecionar ir pra outra página com informações e 2 botões com funções
@@ -256,7 +258,33 @@ while True:
             messagebox.showwarning("Erro ao Finalizar",
                                    "Não há produtos a vender para poder Finalizar")
 
-################################################## A PARTIR DAQUI ####################################################
+    #Voltar(Adicionar)
+    if eventos == 'voltarA':
+        janelaA.hide()
+        janelaP.un_hide()
+
+    # Voltar(Vender)
+    if eventos == 'voltarV':
+        janelaV.hide()
+        janelaP.un_hide()
+
+    # Voltar(Vender2)
+    if eventos == 'voltarV2':
+        janelaV2.hide()
+        janelaV.un_hide()
+
+    # Voltar(Cadastro)
+    if eventos == 'voltarC':
+        janelaC.hide()
+        janelaA.un_hide()
+
+    # Voltar(Histórico)
+    if eventos == 'voltarH':
+        janelaH.hide()
+        janelaP.un_hide()
+    if eventos == 'voltarH2':
+        janelaH.close()
+        janelaH = janelaHistorico(vEH, cEH)
 
     #Finalizar Parte 2
     if eventos == 'concluirV':
@@ -274,9 +302,27 @@ while True:
         vTD = AtualizarDesconto(valores, janela, vTV)
         #Finalizado
 
+    # Buscar (Histórico)
+    if eventos == 'bPesquisar':
+        vEH, cEH = listarBusca(tabelas, valores['inputIDH'], valores['inputQI'], valores['inputDT'], valores['inputVT'])
+        janela['-TBHV-'].Update(values=vEH)
+        janela['-TBHC-'].Update(values=cEH)
 
+    #Selecionar Table(Histórico)
+    if eventos == '-TBHV-':
+        janelaH.close()
+        array = janela['-TBHV-'].get()
+        idx = valores['-TBHV-']
+        array = array[idx[0]]
+        janelaH = janelaHistorico2(tabelas, 'Método de Venda', array[0])
+    if eventos == '-TBHC-':
+        janelaH.close()
+        array = janela['-TBHC-'].get()
+        idx = valores['-TBHC-']
+        array = array[idx[0]]
+        janelaH = janelaHistorico2(tabelas, 'Método de Compra', array[0])
 
-
+################################################## A PARTIR DAQUI ####################################################
 
 
 

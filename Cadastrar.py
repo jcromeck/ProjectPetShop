@@ -4,6 +4,11 @@ from Funções import writerE
 # Janela
 def janelaCadastro(metodosdeVenda,metodosdeCompra):
     sg.theme('Black')
+    colunaV = [
+        [sg.ReadFormButton('', key='voltarC', image_filename='Arquivos/Retornar.png', border_width=0,
+                           image_subsample=1, image_size=(43, 43), button_color='black')],
+        [sg.Text('', size=(0, 25))]
+    ]
     layout1 = [
         [sg.Text("Método de Venda:")],
         [sg.Listbox(metodosdeVenda, key='metodoVenda', size=(30, 6))],
@@ -16,7 +21,7 @@ def janelaCadastro(metodosdeVenda,metodosdeCompra):
         [sg.Text("Valor de Compra:")],
         [sg.InputText(key='valorMCompra', size=(32, 6))]
     ]
-    layoutP = [
+    layout = [
         [sg.Text("Produto:")],
         [sg.InputText(key="Prod")],
         [sg.Text("Marca: ")],
@@ -33,6 +38,9 @@ def janelaCadastro(metodosdeVenda,metodosdeCompra):
         [sg.InputText(key='novoMetodoVendaInput', visible=False),
          sg.Button("+", key="novoMetodoVenda", visible=False, button_color='#bee821')],
         [sg.Button("EfetuarCadastro", button_color='#9853d1')]
+    ]
+    layoutP = [
+        [sg.Column(colunaV), sg.Column(layout)]
     ]
     return sg.Window('Cadastrar Produtos', layout=layoutP, finalize=True)
 # Visualização Cadastrar Método

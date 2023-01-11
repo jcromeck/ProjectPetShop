@@ -4,6 +4,11 @@ from Funções import listaProdutos1, writerE
 
 def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
     sg.theme('Black')
+    colunaV = [
+        [sg.ReadFormButton('', key='voltarA', image_filename='Arquivos/Retornar.png', border_width=0,
+                           image_subsample=1, image_size=(43, 43), button_color='black')],
+        [sg.Text('', size=(0, 18))]
+    ]
     layout11 = [
         [sg.Text('Estoque: ')],
         [sg.Text(estoqueP,expand_x=True, justification='center',key='estoqueTModificado'),
@@ -18,17 +23,22 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
         [sg.Column(layout11), sg.Column(layout12)]
     ]
     layoutA = [
+        [sg.Text('', size=(0,2))],
         [sg.Text("Produto")],
         [sg.Combo(produtosCadastrados, size=(24,2),key="comboProdutos", readonly=True, enable_events=True),
          sg.ReadFormButton('',key='editarEstoque', button_color='#bee821', image_filename='Arquivos/EditEstoqueButton.png', image_size=(30, 30), image_subsample=2, border_width=1)],
+        [sg.Text('')],
         [sg.Text("Quantidade: "),sg.InputText(key="quantidadeAdicionada",size=(3,3),expand_x=True)],
-        [sg.ReadFormButton('',key='continuarCompra', button_color='#bee821', image_filename='Arquivos/Carrinho.png', image_size=(50, 50), image_subsample=1, border_width=1),
+        [sg.Text('')],
+        [sg.ReadFormButton('',key='continuarCompra', button_color='#bee821', image_filename='Arquivos/Carrinho.png', image_size=(35, 35), image_subsample=2, border_width=1),
          sg.Column(layout1, key='ColunaAM')],
+        [sg.Text('')],
         [sg.Button('CadastrarProduto', key='CadastroProduto', button_color='#bee821', font=(None,15),expand_x=True)]
     ]
     layoutB = [
+        [sg.Text('', size=(0,2))],
         [sg.Text('',expand_x=True,justification='Right'),
-         sg.ReadFormButton('', key='excluirTBEstoque', button_color='red', image_filename='Arquivos/Excluir.png', image_size=(30, 30), image_subsample=2, border_width=1)],
+         sg.ReadFormButton('', key='excluirTBEstoque', button_color='red', image_filename='Arquivos/Excluir.png', image_size=(35, 35), image_subsample=2, border_width=1)],
         [sg.Table(values=produtosAdicionados, select_mode=sg.SELECT_MODE_BROWSE, headings=['Produto', 'Marca', 'Método', 'Quant', 'ValorUn', 'ValorTotal'], size=(40, 15), key='-TB-')]
     ]
     layoutC = [
@@ -36,7 +46,8 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
         [sg.Text('', key='valorTotal', justification='right', expand_x=True,text_color='Red')]
     ]
     layoutP = [
-        [sg.Column(layoutA),
+        [sg.Column(colunaV),
+         sg.Column(layoutA),
          sg.Column(layoutB)],
         [sg.Button('Concluir', font=(None, 15), expand_x=True, button_color='#9853d1'),
          sg.Column(layoutC)]
