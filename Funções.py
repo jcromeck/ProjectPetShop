@@ -2,11 +2,20 @@ import pandas as pd
 
 def listaProdutos(tabela_produtos, n):
     my_list = []
+    m_l = []
     for index, rows in tabela_produtos.iterrows():
         if n == 0:
             my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
         if n == 1:
             my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Venda)
+        if n == 2:
+            m_l.append(rows.Produto)
+            m_l.append(rows.Marca)
+            m_l.append(rows.Método_Venda)
+            m_l.append(rows.Método_Compra)
+            m_l.append(str(rows.Valor_Venda))
+            m_l.append(str(rows.Valor_Compra))
+            my_list.append(m_l)
     return my_list
 
 def listaProdutosV(tabela_compras):

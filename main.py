@@ -99,7 +99,7 @@ def janelaInicial():
 
 # Janela
 janelaP, janelaA, janelaC, janelaV, janelaPop, janelaH, janelaE = janelaInicial(), None, None, None, None, None, None
-janelaEP, janelaEst, janelaV2 = None, None, None
+janelaEP, janelaEst, janelaV2, janelaEPC = None, None, None, None
 
 # Ler os eventos
 while True:
@@ -145,6 +145,7 @@ while True:
     # Estatísticas
     if eventos == 'Estatísticas':
         janelaE = janelaEstatistica()
+        estatisticas(tabelas, janelaE, data_em_texto)
         # Jogar informações na tela
 
     # Fechar Estatistica
@@ -154,9 +155,13 @@ while True:
 
     # Editar Produto
     if eventos == 'Editar Produto':
-        pC = listaProdutos(tabelas[1], 0)
-        janelaEP = janelaEditProduto(pC)
-        # Excluir Produto e Adicionar um novo com novas informações
+        pCEP = listaProdutos(tabelas[1], 2)
+        janelaEP = janelaEditProduto(pCEP)
+
+    #Selecionar Produto(Editar Produto)
+    if eventos == '-TBEP-':
+        janelaEPC = janelaCadastro(mdV, mdC)
+        selProd(tabelas, janelaEPC, pCEP[valores['-TBEP-'][0]])
 
     #Fechar Editar Produto
     if eventos == sg.WINDOW_CLOSED and janela == janelaEP:

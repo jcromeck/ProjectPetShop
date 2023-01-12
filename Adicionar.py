@@ -216,6 +216,9 @@ def FinalizarAd(p_ComprasProv, tabelas, path, id, data):
     condicao = (str(tabelas[4]['ID']) == str(id))
     quant = tabelas[4].loc[condicao, :].sum()
     vT = tabelas[4].loc[condicao, 'Valor_Total'].sum()
+    data = data.split(" ")
+    data = data[0].split("-")
+    data = data[2] + "/" + data[1] + "/" + data[0]
     # Adicionar Compras
     new_row = {'ID': id,
                'QItens': quant,

@@ -231,6 +231,9 @@ def FinalizarVpt2(v, tPVP, tabelas, path, data, id, valorTotalcDesconto):
         frete = 'Sim'
     else:
         frete = 'Não'
+    data = data.split(" ")
+    data = data[0].split("-")
+    data = data[2] + "/" + data[1] + "/" + data[0]
     # Atualizar Vendas
     new_row = {'ID': id,
                'QItens': quant,
