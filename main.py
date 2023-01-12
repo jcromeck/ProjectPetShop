@@ -162,7 +162,7 @@ while True:
     if eventos == '-TBEP-':
         janelaEPC = janelaCadastro(mdV, mdC)
         selProd(tabelas, janelaEPC, pCEP[valores['-TBEP-'][0]])
-
+######################################## ARRUMAR VOLTAR DO SELECIONAR PRODUTO #########################################
     #Fechar Editar Produto
     if eventos == sg.WINDOW_CLOSED and janela == janelaEP:
         janelaEP.hide()
