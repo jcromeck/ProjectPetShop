@@ -2,19 +2,17 @@ import pandas as pd
 
 def listaProdutos(tabela_produtos, n):
     my_list = []
-    m_l = []
+
     for index, rows in tabela_produtos.iterrows():
+        m_l = []
         if n == 0:
             my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
         if n == 1:
             my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Venda)
         if n == 2:
-            m_l.append(rows.Produto)
-            m_l.append(rows.Marca)
-            m_l.append(rows.Método_Venda)
-            m_l.append(rows.Método_Compra)
-            m_l.append(str(rows.Valor_Venda))
-            m_l.append(str(rows.Valor_Compra))
+            m_l.append(rows.Produto + '-' + rows.Marca + '-' + rows.Método_Venda + '-' + str(
+                rows.Valor_Venda) + '-' + rows.Método_Compra + '-' + str(rows.Valor_Compra))
+            m_l = m_l[0].split('-')
             my_list.append(m_l)
     return my_list
 
@@ -73,7 +71,6 @@ def listaMetodos(tabela_metodos):
 def listarVC(tabela_vendas):
     my_list = []
     y = []
-    x = []
     for index, rows in tabela_vendas.iterrows():
         x = str(rows.Data).split(" ")
         x = x[0].split("-")
@@ -86,12 +83,27 @@ def listarVC(tabela_vendas):
         my_list = []
     return y
 
-def listarBusca(tabelas, id, quant, data, vT):
+def listarBusca(tabelas, id, quant, data, vT, janela):
     venda = []
     vendaP = []
     compra = []
     compraP = []
-    y = []
+    if id == '' and quant == '' and data == '' and vT == '':
+        for index, rows in tabelas[3].iterrows():
+            y = str(rows.Data).split(" ")
+            y = y[0].split("-")
+            dataS = y[2] + "/" + y[1] + "/" + y[0]
+            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            vendaP.append(venda)
+        for index, rows in tabelas[5].iterrows():
+            y = str(rows.Data).split(" ")
+            y = y[0].split("-")
+            dataS = y[2] + "/" + y[1] + "/" + y[0]
+            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            compraP.append(compra)
+            janela['-TBHV-'].Update(values=vendaP)
+            janela['-TBHC-'].Update(values=compraP)
+            return
     for index, rows in tabelas[3].iterrows():
         y = str(rows.Data).split(" ")
         y = y[0].split("-")
@@ -104,7 +116,9 @@ def listarBusca(tabelas, id, quant, data, vT):
             venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
         if str(vT) == str(rows.Valor_Total):
             venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
-        vendaP.append(venda)
+        if venda != []:
+            vendaP.append(venda)
+            venda = []
     for index, rows in tabelas[5].iterrows():
         y = str(rows.Data).split(" ")
         y = y[0].split("-")
@@ -118,5 +132,18 @@ def listarBusca(tabelas, id, quant, data, vT):
         if str(vT) == str(rows.Valor_Total):
             compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
         compraP.append(compra)
-    return vendaP, compraP
+    janela['-TBHV-'].Update(values=vendaP)
+    janela['-TBHC-'].Update(values=compraP)
+    return
+
+def listaEstoque(tabela_estoque):
+    my_list = []
+    y = []
+    for index, rows in tabela_estoque.iterrows():
+        my_list.append(rows.Produto+'-'+rows.Marca+'-'+rows.Método_Venda+'-'+str(rows.Quantidade))
+        my_list = my_list[0].split('-')
+        y.append(my_list)
+        my_list= []
+    return y
+
 

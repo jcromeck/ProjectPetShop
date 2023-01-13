@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+import pandas as pd
 from collections import Counter
 
 def janelaEstatistica():
@@ -53,6 +54,9 @@ def estatisticas(tabelas, j, data):
             n +=1
     j['nVendasDiaT'].Update(str(n))
     # Lucro Dia(Vendas-Compras)
+    data = data.split('/')
+    data[0], data[2] = data[2], data[0]
+    data = str(data[0])+"-"+str(data[1])+'-'+str(data[2])
     condicao = (tabelas[3]['Data'] == data)
     condicao1 = (tabelas[5]['Data'] == data)
     lucro_vendas = tabelas[3].loc[condicao, 'Valor_Total'].sum()

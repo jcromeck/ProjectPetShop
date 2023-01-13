@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import pandas as pd
-from Funções import listaProdutos, listarVC, listarBusca
+from Funções import listaProdutos, listarVC, listarBusca, listaEstoque
 from datetime import date
 from Adicionar import *
 from Cadastrar import *
@@ -153,6 +153,11 @@ while True:
         janelaE.hide()
         #Só fecha mesmo
 
+    # Fechar Editar Produto - Cadastro
+    if eventos == sg.WINDOW_CLOSED and janela == janelaEPC:
+        janelaEPC.hide()
+        # Só fecha mesmo
+
     # Editar Produto
     if eventos == 'Editar Produto':
         pCEP = listaProdutos(tabelas[1], 2)
@@ -161,7 +166,8 @@ while True:
     #Selecionar Produto(Editar Produto)
     if eventos == '-TBEP-':
         janelaEPC = janelaCadastro(mdV, mdC)
-        selProd(tabelas, janelaEPC, pCEP[valores['-TBEP-'][0]])
+        selProd(tabelas[0], janelaEPC, pCEP[valores['-TBEP-'][0]])
+        idxEdit = valores['-TBEP-'][0]
 ######################################## ARRUMAR VOLTAR DO SELECIONAR PRODUTO #########################################
     #Fechar Editar Produto
     if eventos == sg.WINDOW_CLOSED and janela == janelaEP:
@@ -170,7 +176,8 @@ while True:
 
     # Estoque
     if eventos == 'Estoque':
-        janelaEst = janelaEstoque([])
+        estoque = listaEstoque(tabelas[6])
+        janelaEst = janelaEstoque(estoque)
         # Enviar Produtos em estoque
 
     #Fechar Editar Produto
@@ -224,11 +231,19 @@ while True:
         #Feito
 
     # Adicionar Produto Cadastro(Cadastro)
-    if eventos == 'EfetuarCadastro':
+    if eventos == 'EfetuarCadastro' and janela == janelaC:
         tabelas = EfCad(tabelas, valores, janela, path)
         janelaA['comboProdutos'].Update(pC)
         janelaC.hide()
         #Feito
+
+    # Editar Produto(Cadastro)
+    if eventos == 'EfetuarCadastro' and janela == janelaEPC:
+        pCEP, tabelas =FinalizarEdit(tabelas, idxEdit, valores, janelaEPC, pCEP, path)
+        janelaEPC.close()
+        janelaEP.close()
+        pCEP = listaProdutos(tabelas[1], 2)
+        janelaEP = janelaEditProduto(pCEP)
 
     # Fechar Programa(Cadastro)
     if eventos == sg.WINDOW_CLOSED and janela == janelaC:
@@ -279,9 +294,14 @@ while True:
         janelaV.un_hide()
 
     # Voltar(Cadastro)
-    if eventos == 'voltarC':
+    if eventos == 'voltarC' and janela == janelaC:
         janelaC.hide()
         janelaA.un_hide()
+
+    # Voltar(Cadastro- Editar Produto)
+    if eventos == 'voltarC' and janela == janelaEPC:
+        janelaEPC.hide()
+        janelaEP.un_hide()
 
     # Voltar(Histórico)
     if eventos == 'voltarH':
@@ -309,25 +329,26 @@ while True:
 
     # Buscar (Histórico)
     if eventos == 'bPesquisar':
-        vEH, cEH = listarBusca(tabelas, valores['inputIDH'], valores['inputQI'], valores['inputDT'], valores['inputVT'])
-        janela['-TBHV-'].Update(values=vEH)
-        janela['-TBHC-'].Update(values=cEH)
+        listarBusca(tabelas, valores['inputIDH'], valores['inputQI'], valores['inputDT'], valores['inputVT'], janela)
 
     #Selecionar Table(Histórico)
     if eventos == '-TBHV-':
         janelaH.close()
-        array = janela['-TBHV-'].get()
+        array = vEH
         idx = valores['-TBHV-']
         array = array[idx[0]]
         janelaH = janelaHistorico2(tabelas, 'Método de Venda', array[0])
     if eventos == '-TBHC-':
         janelaH.close()
-        array = janela['-TBHC-'].get()
+        array = cEH
         idx = valores['-TBHC-']
         array = array[idx[0]]
         janelaH = janelaHistorico2(tabelas, 'Método de Compra', array[0])
 
-################################################## A PARTIR DAQUI ####################################################
+    # Excluir(Histórico)
+    #FALTA ISSO
+    #E ATUALIZAR ESTOQUE EM ADICIONAR E VENDER
+
 
 
 
