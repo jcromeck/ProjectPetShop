@@ -1,4 +1,6 @@
 import PySimpleGUI as sg
+import numpy as np
+from Funções import writerE
 
 def janelaHistorico(vendasEfetuadasH,comprasEfetuadasH):
     sg.theme('Black')
@@ -63,7 +65,7 @@ def layoutsAba(produto, marca, metodo, quantidade, valor_un, valor_total, strMet
     layout = [
         [sg.Column(layout1), sg.Column(layout2)]
     ]
-    return sg.Tab(f'Produto {index}', layout, key=f'Tab {index}')
+    return sg.Tab(f'Produto {index + 1}', layout, key=f'Tab {index}')
 
 def janelaHistorico2(tabelas, strMetodo, idX):
     n = 0
@@ -92,6 +94,66 @@ def janelaHistorico2(tabelas, strMetodo, idX):
     layoutP = [
         [sg.Column(colunaV)],
         [sg.Text('ID : '+str(idX), font=('',20), expand_x=True, justification='center')],
-        [sg.TabGroup([tabs_layout])]
+        [sg.TabGroup([tabs_layout], enable_events=True, key='Tabgroup')]
     ]
     return sg.Window('Histórico', layout=layoutP, finalize=True)
+
+def ExcluirCompraVenda(tabelas, v, mvc, idX, j, path):
+    tabP = v['Tabgroup']
+    tabP = tabP.split(' ')
+    for n in range(1000):
+        if tabP[1] == str(n):
+            tab = n
+            break
+    int = 0
+    if mvc == 'mv':
+        int = 2
+        #Venda
+    if mvc == 'mc':
+        int = 4
+        # Compra
+
+    condicao = (tabelas[int]['ID'] == np.int64(idX))
+    indice = tabelas[int].loc[condicao, :].index[tab]
+    print(type(indice))
+    quantidade = tabelas[int].at[indice, 'Quantidade']
+    vP = tabelas[int].at[indice, 'Valor_Total']
+    tabelas[int] = tabelas[int].drop(indice)  # atualiza a tabela do produto
+
+    condicao2 = (tabelas[int + 1]['ID'] == np.int64(idX))
+    indice2 = tabelas[int + 1].loc[condicao2, :].index[0]
+    atual = tabelas[int + 1].at[indice2, 'QItens']
+    valorTotal = tabelas[int + 1].at[indice2, 'Valor_Total']
+
+    conf1, conf2, conf3, conf4 = 0, 0, 0, 0
+    print(vP)
+    print(quantidade)
+    print(atual)
+    print(valorTotal)
+    for n in range(10000):
+        if str(quantidade) == str(n):
+            quantidade = n
+            conf1 = 1
+        if str(vP) == str(n):
+            vP = n
+            conf2 = 1
+        if conf1 == 1 and conf2 == 1:
+            break
+    for n in range(100000):
+        if str(atual) == str(n):
+            atual = n
+            conf3 = 1
+        if str(valorTotal) == str(n):
+            valorTotal = n
+            conf4 = 1
+        if conf3 == 1 and conf4 == 1:
+            break
+
+    atual = atual - quantidade
+    valorTotal = valorTotal - vP
+    print(tabelas[int+1].at[indice2, 'QItens'])
+    print(atual)
+    tabelas[int+1].at[indice2, 'QItens'] = atual  # Mudando a quantidade de itens
+    tabelas[int+1].at[indice2, 'Valor_Total'] = valorTotal  # Mudando o valorTotal de itens
+    writerE(tabelas, path)
+    j['Tabgroup'].remove(tab)  # Tirando a tab

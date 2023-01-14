@@ -13,13 +13,13 @@ from Estoque import *
 #CodigoPandas
 path = "Arquivos/Compras.xlsx"
 pathBackup ="Arquivos/Compras_Backup.xlsx"
-tabela_mtds = pd.DataFrame()    #0
-tabela_pdts = pd.DataFrame()    #1
-tabela_pVds = pd.DataFrame()    #2
-tabela_vendas = pd.DataFrame()  #3
-tabela_pCompras = pd.DataFrame()#4
-tabela_compras = pd.DataFrame() #5
-tabela_estoque = pd.DataFrame() #6
+tabela_mtds = pd.DataFrame()      # 0
+tabela_pdts = pd.DataFrame()      # 1
+tabela_pVds = pd.DataFrame()      # 2
+tabela_vendas = pd.DataFrame()    # 3
+tabela_pCompras = pd.DataFrame()  # 4
+tabela_compras = pd.DataFrame()   # 5
+tabela_estoque = pd.DataFrame()   # 6
 
 try:
     dDf=pd.read_excel(path, sheet_name=['Métodos', 'Produtos', 'P_Vendas', 'Vendas', 'P_Compras', 'Compras', 'Estoque'])
@@ -108,8 +108,10 @@ while True:
     # Adicionar Produto
     if eventos == 'Adicionar Produto':
         eP, vP = '', ''
+        tEP = tabelas[6]
         pC = listaProdutos(tabelas[1], 0)
         janelaA = janelaAdicionar(pC, eP, vP, pA)
+        #Pronto
 
     # Fechar Programa(Adicionar)
     if eventos == sg.WINDOW_CLOSED and janela == janelaA:
@@ -166,6 +168,7 @@ while True:
     #Selecionar Produto(Editar Produto)
     if eventos == '-TBEP-':
         janelaEPC = janelaCadastro(mdV, mdC)
+        print(tabelas[0])
         selProd(tabelas[0], janelaEPC, pCEP[valores['-TBEP-'][0]])
         idxEdit = valores['-TBEP-'][0]
 ######################################## ARRUMAR VOLTAR DO SELECIONAR PRODUTO #########################################
@@ -196,12 +199,7 @@ while True:
 
     # Carrinho(Adicionar)
     if eventos == 'continuarCompra':
-        pA, vT, pCProv = CarAd(tabelas, valores, janela, pCProv, pC, pA, vT, idC)
-        #Feito
-
-    # Editar(Adicionar)
-    if eventos == 'editarEstoque':
-        vI, tabelas, vP, eP = EditE(tabelas, path, janela, valores, vI, vP, eP)
+        pA, vT, pCProv, tEP = CarAd(tabelas, valores, janela, pCProv, pC, pA, vT, idC, tEP)
         #Feito
 
     # Cadastro(Adicionar)
@@ -216,7 +214,7 @@ while True:
 
     # Finalizar(Adicionar)
     if eventos == 'Concluir':
-        tabelas = FinalizarAd(pCProv, tabelas, path, idC, data_em_texto)
+        tabelas = FinalizarAd(pCProv, tabelas, path, idC, data_em_texto, tEP)
         pA = []
         janelaA.close()
 
@@ -233,7 +231,9 @@ while True:
     # Adicionar Produto Cadastro(Cadastro)
     if eventos == 'EfetuarCadastro' and janela == janelaC:
         tabelas = EfCad(tabelas, valores, janela, path)
-        janelaA['comboProdutos'].Update(pC)
+        pC = listaProdutos(tabelas[1], 0)
+        print(pC)
+        janelaA['comboProdutos'].Update(values=pC)
         janelaC.hide()
         #Feito
 
@@ -272,7 +272,7 @@ while True:
 
     # Finalizar(Venda)
     if eventos == "FinalizarVenda":
-        if pAV == []:
+        if pAV != []:
             janelaV2 = janelaVender2(vTV)
         else:
             messagebox.showwarning("Erro ao Finalizar",
@@ -313,7 +313,7 @@ while True:
 
     #Finalizar Parte 2
     if eventos == 'concluirV':
-        if valores['comboPag'] != []:
+        if valores['comboPag'] == []:
             tabelas = FinalizarVpt2(valores, tPVP, tabelas, path, data_em_texto, idV)
             idV += 1
             janelaV2.close()
@@ -338,16 +338,25 @@ while True:
         idx = valores['-TBHV-']
         array = array[idx[0]]
         janelaH = janelaHistorico2(tabelas, 'Método de Venda', array[0])
+        id_ExcluirV, id_ExcluirC = array[0], None
     if eventos == '-TBHC-':
         janelaH.close()
         array = cEH
         idx = valores['-TBHC-']
         array = array[idx[0]]
         janelaH = janelaHistorico2(tabelas, 'Método de Compra', array[0])
+        id_ExcluirV, id_ExcluirC = None, array[0]
 
     # Excluir(Histórico)
-    #FALTA ISSO
-    #E ATUALIZAR ESTOQUE EM ADICIONAR E VENDER
+    if eventos == 'excluirH2':
+        if id_ExcluirV == None:
+            ExcluirCompraVenda(tabelas, valores, 'mc', id_ExcluirC, janela, path)
+        else:
+            ExcluirCompraVenda(tabelas, valores, 'mv', id_ExcluirV, janela, path)
+        janelaH.close()
+        vEH = listarVC(tabelas[3])
+        cEH = listarVC(tabelas[5])
+        janelaH = janelaHistorico(vEH, cEH)
 
 
 

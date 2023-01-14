@@ -82,5 +82,8 @@ def estatisticas(tabelas, j, data):
     for index, rows in tabelas[2].iterrows():
         my_list.append(str(rows.Produto)+'  ' + str(rows.Marca))
     counts = Counter(my_list)
-    most_common_string = max(counts, key=counts.get)
+    try:
+        most_common_string = max(counts, key=counts.get)
+    except ValueError as ve:
+        most_common_string = 'Nenhum'
     j['produtoMVT'].Update(most_common_string)

@@ -2,11 +2,17 @@ import pandas as pd
 
 def listaProdutos(tabela_produtos, n):
     my_list = []
-
     for index, rows in tabela_produtos.iterrows():
         m_l = []
         if n == 0:
-            my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
+            k = 0
+            m_l.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
+            for m in range(len(m_l)):
+                for n in range(len(my_list)):
+                    if m_l[m] == my_list[n]:
+                        k = 1
+            if k == 0:
+                my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
         if n == 1:
             my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Venda)
         if n == 2:
@@ -140,7 +146,7 @@ def listaEstoque(tabela_estoque):
     my_list = []
     y = []
     for index, rows in tabela_estoque.iterrows():
-        my_list.append(rows.Produto+'-'+rows.Marca+'-'+rows.Método_Venda+'-'+str(rows.Quantidade))
+        my_list.append(rows.Produto+'-'+rows.Marca+'-'+rows.Método+'-'+str(rows.Quantidade))
         my_list = my_list[0].split('-')
         y.append(my_list)
         my_list= []

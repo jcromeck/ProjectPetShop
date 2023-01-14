@@ -42,7 +42,7 @@ def janelaCadastro(metodosdeVenda,metodosdeCompra):
     layoutP = [
         [sg.Column(colunaV), sg.Column(layout)]
     ]
-    return sg.Window('Cadastrar Produtos', layout=layoutP, finalize=True)
+    return sg.Window('Cadastrar Produtos', icon='Arquivos/icon.ico', layout=layoutP, finalize=True)
 # Visualização Cadastrar Método
 def visCad(visBCad, j):
     if visBCad == False:
@@ -61,7 +61,7 @@ def visCad(visBCad, j):
 def NewM(tabelas, v, j, metodosdeVenda, path):
     metodosdeVenda.append(v['novoMetodoVendaInput'])
     metodosdeCompra = ['Outro produto do estoque'] + metodosdeVenda
-    new_row = [{'Método': v["novoMetodoVendaInput"]}]
+    new_row = {'Método': v["novoMetodoVendaInput"]}
     tabelas[0] = tabelas[0].append(new_row, ignore_index=True)
     writerE(tabelas, path)
     j["TnM"].Update(visible=False)
@@ -95,7 +95,15 @@ def EfCad(tabelas, v, j, path):
                                'Método_Compra': j["metodoCompra"].get()[0],
                                'ReporEstoquepProd': outroProduto}
                     tabelas[1] = tabelas[1].append(new_row, ignore_index=True)
+                    new_row = {
+                        'Produto': v['Prod'],
+                        'Marca': v['MarcaProduto'],
+                        'Método': j['metodoVenda'].get()[0],
+                        'Quantidade': 0}
+                    print(tabelas[1])
+                    tabelas[6] = tabelas[6].append(new_row, ignore_index=True)
                     writerE(tabelas, path)
+                    return tabelas
                 except ValueError as ve:
                     messagebox.showwarning("Erro ao Cadastrar",
                                            'O campo Valor do Produto apenas aceita Números')
@@ -105,4 +113,3 @@ def EfCad(tabelas, v, j, path):
     else:
         messagebox.showwarning("Preencha Todos os campos",
                                'Preencha o campo de Método de Venda')
-    return tabelas
