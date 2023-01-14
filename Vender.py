@@ -45,7 +45,7 @@ def janelaVender(produtosEstoque, produtosAVender, estoqueP, valorP):
         [sg.Table(values=produtosAVender, headings=['Produto', 'Marca', 'Método', 'Quant', 'ValorUn', 'ValorTotal'],
                   size=(40, 15), key='tV_produtos')],
         [sg.Text("Valor Total da Compra:", justification='right', expand_x=True)],
-        [sg.Text(key='valorTotalV', text_color='green', justification='right', expand_x=True)]
+        [sg.Text(key='valorTotalV', text_color='green', justification='right', expand_x=True)],
     ]
     layout = [
         [sg.Column(colunaV), sg.Column(layout1), sg.Column(layout2)]
@@ -115,39 +115,7 @@ def SePrV(tabelas, v, janela):
     janela['estoqueVModificado'].Update(estoqueP)
     janela['valorProdutoVModificado'].Update(valorP)
     return estoqueP, valorP
-# Editar Estoque e Valor
-def EditEV(tabelas, path, j, v, visInputV, valorP, estoqueP):
-    if visInputV == False:  # ABRINDO INPUT
-        j['estoqueTVModificado'].Update(estoqueP, visible=False)
-        j['estoqueVModificado'].Update(estoqueP, visible=True)
-        j['valorPTVModificado'].Update(valorP, visible=False)
-        j['valorProdutoVModificado'].Update(valorP, visible=True)
-        visInputV = True
-    else:  # ABRINDO TEXT
-        estoqueP = int(v['estoqueVModificado'])
-        valorP = int(v['valorProdutoVModificado'])
-        provisorio = v['tiposProdutos'].split("-")
-        condicao = (tabelas[1]['Produto'] == provisorio[0]) & (tabelas[1]['Marca'] == provisorio[1]) & (
-                    tabelas[1]['Método_Venda'] == provisorio[2])
-        condicao2 = (tabelas[6]['Produto'] == provisorio[0]) & (tabelas[6]['Marca'] == provisorio[1]) & (
-                    tabelas[6]['Método_Compra'] == provisorio[2]) & (tabelas[6]['Método_Venda'] == provisorio[2])
-        indice = tabelas[1].loc[condicao, :]
-        tabelas[1].at[indice, 'Valor_Venda'] = valorP
-        try:
-            if estoqueP != '0':
-                indice2 = tabelas[6].loc[condicao2, :].index[0]
-                tabelas[6].at[indice2, 'Quantidade'] = estoqueP
-        except IndexError as ie:
-            messagebox.showwarning("Erro ao Editar Estoque",
-                                   'Produto nunca antes adicionado.\nPrecisa adicionar uma vez antes de editar seu estoque')
-            estoqueP = '0'
-        writerE(tabelas, path)
-        j['estoqueTVModificado'].Update(estoqueP, visible=True)
-        j['estoqueVModificado'].Update(estoqueP, visible=False)
-        j['valorPTVModificado'].Update(valorP, visible=True)
-        j['valorProdutoVModificado'].Update(valorP, visible=False)
-        visInputV = False
-    return visInputV, tabelas, valorP, estoqueP
+
 # Excluir Elemento Table
 def ExcV(t, pAV, j, v, vTV, tPVP, id):
     data_selected = [pAV[row] for row in v['tV_produtos']]

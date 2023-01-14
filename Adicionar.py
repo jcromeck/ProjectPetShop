@@ -197,7 +197,7 @@ def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
         messagebox.showwarning("Impossível Deletar Dado",
                                'Precisa Selecionar o Dado na Tabela antes de Deletar')
     else:
-        for row in range(len(produtosAdicionados)-1):
+        for row in range(len(produtosAdicionados)):
             if produtosAdicionados[row][0] == data_selected[0][0] and \
                     produtosAdicionados[row][1] == data_selected[0][1] and \
                     produtosAdicionados[row][2] == data_selected[0][2] and \
