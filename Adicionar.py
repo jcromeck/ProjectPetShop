@@ -53,16 +53,6 @@ def janelaAdicionar(produtosCadastrados, estoqueP, valorP, produtosAdicionados):
     ]
     return sg.Window('Adicionar Produtos', icon='Arquivos/icon.ico', layout=layoutP, finalize=True)
 
-def popupRepor(produtosCadastrados):
-    layout = [
-        [sg.Text('Selecione o Item retirado')],
-        [sg.Combo(produtosCadastrados, key='comboPopup', size=(20, 1))],
-        [sg.Text('Agora Selecione a proporção')],
-        [sg.Text('Selecione a quantidade retirada'), sg.Input(key='propRet')],
-        [sg.Text('Selecione a quantidade adicionada'), sg.Input(key='propAdic')],
-        [sg.Button('Ok', key='concluirPopup')]
-    ]
-    return sg.Window('Item com Reposição a partir de outro item', layout)
 # Selecionar Produto
 def SePr(tabelas, v, janela):
     provisorio = v['comboProdutos'].split("-")
@@ -88,23 +78,6 @@ def SePr(tabelas, v, janela):
     janela['valorProdutoModificado'].Update(valorP)
     return estoqueP, valorP
 
-def popC(tabelas, tabela_estoqueProv, v, j):
-    prov = v['comboPopup'].split("-")
-    cond = (tabela_estoqueProv['Produto'] == prov[0]) & (
-            tabela_estoqueProv['Marca'] == prov[1]) & (
-            tabela_estoqueProv['Método'] == prov[2])
-    indic = tabela_estoqueProv.loc[cond, :].index[0]
-    tabela_estoqueProv.at[indic, 'Quantidade'] -= v['propRet']
-    prov = v['comboProdutos'].split("-")
-    cond = (tabela_estoqueProv['Produto'] == prov[0]) & (
-            tabela_estoqueProv['Marca'] == prov[1]) & (
-                   tabela_estoqueProv['Método'] == prov[2])
-    indic = tabela_estoqueProv.loc[cond, :].index[0]
-    tabela_estoqueProv.at[indic, 'Quantidade'] += v['propAdic']
-    estoqueP = tabelas[0].loc[indic, 'Quantidade']
-    j['estoqueTModificado'].Update(estoqueP, visible=True)
-    j['estoqueModificado'].Update(estoqueP, visible=False)
-    return estoqueP, tabela_estoqueProv
 # Carrinho Adicionar
 def CarAd(t, v, j, p_ComprasProv, produtosCadastrados, produtosAdicionados, valorTotal, id, tEP):
     atual = v['comboProdutos']
@@ -137,9 +110,13 @@ def CarAd(t, v, j, p_ComprasProv, produtosCadastrados, produtosAdicionados, valo
                     for index, rows in t[6].iterrows():
                         if p_ComprasP[1] == rows.Produto and p_ComprasP[2] == rows.Marca and p_ComprasP[
                             3] == rows.Método:
+                            print(tEP)
+                            print(tEP.at[index, 'Quantidade'])
                             tepp = int(p_ComprasP[4]) + int(tEP.at[index, 'Quantidade'])
                     tEP.at[index, 'Quantidade'] = tepp
                     p_ComprasProv = p_ComprasProv.append(new_row, ignore_index=True)
+                    j['estoqueTModificado'].Update('')
+                    j['valorPTModificado'].Update('')
                     return produtosAdicionados, valorTotal, p_ComprasProv, tEP
                 else:
                     messagebox.showwarning("Erro ao Adicionar",
@@ -210,10 +187,18 @@ def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
                             p_ComprasProv['Quantidade'] == data_selected[0][3]) & (
                             p_ComprasProv['Valor_Un']+str(' R$') == data_selected[0][4]) & (
                             p_ComprasProv['Valor_Total']+str(' R$') == data_selected[0][5])
+                condicao2 = (t[6]['Produto'] == data_selected[0][0]) & (t[6]['Marca'] == data_selected[0][1]) & (
+                            t[6]['Método'] == data_selected[0][2])
                 indice = p_ComprasProv.loc[condicao, :].index[-1]
+                indice2 = t[6].loc[condicao2, :].index[0]
                 print(indice)
+                quantAntes = t[6].at[indice2, 'Quantidade']
+                print(quantAntes)
+                quantSub = data_selected[0][3]
+                t[6].at[indice2, 'Quantidade'] = int(quantAntes) - int(quantSub)
                 p_ComprasProv.drop(indice)
                 produtosAdicionados.pop(row)
+                break
         j['-TB-'].Update(values=produtosAdicionados)
         xProv = data_selected[0][5].split(" ")
         valorTotal -= float(xProv[0])
@@ -228,9 +213,6 @@ def FinalizarAd(p_ComprasProv, tabelas, path, id, data, tEProv):
     condicao = tabelas[4]['ID'] == str(id)
     quant = tabelas[4].loc[condicao, :].sum()
     vT = tabelas[4].loc[condicao, 'Valor_Total'].sum()
-    data = data.split(" ")
-    data = data[0].split("-")
-    data = data[2] + "/" + data[1] + "/" + data[0]
     # Adicionar Compras
     new_row = {'ID': id,
                'QItens': quant,

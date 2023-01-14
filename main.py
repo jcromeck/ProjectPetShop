@@ -58,21 +58,22 @@ data_em_texto = date.today().strftime('%d/%m/%Y')
 pA = [] # Perfeito
 pCProv = tabelas[4]
 idC = 1 # Listar Ultimo id de Compras +1
+mdC = ['Outro produto do estoque'] + listaMetodos(tabelas[0])
+vT=0
 # Vender
 pAV = []# Perfeito
+tPVP = tabelas[2]
 idV = 10000 #Listar Ultimo id de Vendas +1
-# Histórico
-vEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
-cEH = [] # Listar ID, Data, Quantidades Produtos, ValorTotal
-
-vT=0 ; vTV = 0
-t0P = tabelas[1]; vI = False; vBC = False
 mdV = listaMetodos(tabelas[0])
-mdC = ['Outro produto do estoque'] + mdV
+vTV = 0
+# Histórico
+vEH = []  # Listar ID, Data, Quantidades Produtos, ValorTotal
+cEH = []  # Listar ID, Data, Quantidades Produtos, ValorTotal
+
+t0P = tabelas[1]
+vI = False; vBC = False
 editTBidx = 0
 editTBn = 0
-nV = 0
-tPVP = tabelas[4]
 
 # Layout
 def janelaInicial():
@@ -109,6 +110,7 @@ while True:
         # Vender Produto
         if eventos == 'Vender Produto':
             eP, vP = '', ''
+            tEP = tabelas[6]
             pEV = listaProdutos(tabelas[1], 1)
             janelaV = janelaVender(pEV, pAV, eP, vP)
 
@@ -189,9 +191,7 @@ while True:
 
         # Adicionar Produto Cadastro(Cadastro)
         if eventos == 'EfetuarCadastro' and janela == janelaC:
-            tabelas = EfCad(tabelas, valores, janela, path)
-            pC = listaProdutos(tabelas[1], 0)
-            print(pC)
+            tabelas, pC = EfCad(tabelas, valores, janela, path, pC)
             janelaA['comboProdutos'].Update(values=pC)
             janelaC.hide()
             # Feito
@@ -230,12 +230,12 @@ while True:
 
         # Carrinho(Vender)
         if eventos == 'continuarVCompra':
-            vTV, tPVP, pAV = CarVenda(tabelas, valores, pEV, janela, pAV, vTV, tPVP, nV)
+            vTV, tPVP, pAV, tEP = CarVenda(tabelas, valores, pEV, janela, pAV, vTV, tPVP, idV, tEP)
             # Validar se tem no estoque
 
         # Excluir Elemento Table(Vender)
         if eventos == 'excluirTBEstoqueV':
-            vTV, tPVP, pAV = ExcV(pAV, janela, valores, vTV, tPVP)
+            vTV, tPVP, pAV = ExcV(tabelas, pAV, janela, valores, vTV, tPVP)
             # Conferir pra ver se ta certo
 
         # Finalizar(Venda)

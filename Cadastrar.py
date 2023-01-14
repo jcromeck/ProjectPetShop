@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 from tkinter import messagebox
-from Funções import writerE
+from Funções import writerE, listaProdutos
 # Janela
 def janelaCadastro(metodosdeVenda,metodosdeCompra):
     sg.theme('Black')
@@ -71,7 +71,7 @@ def NewM(tabelas, v, j, metodosdeVenda, path):
     j['metodoCompra'].Update(values=metodosdeCompra)
     return metodosdeVenda, metodosdeCompra, tabelas
 # Efetuar Cadastro
-def EfCad(tabelas, v, j, path):
+def EfCad(tabelas, v, j, path, pC):
     current = v['metodoVenda']
     current2 = v['metodoCompra']
     if current != []:
@@ -103,7 +103,8 @@ def EfCad(tabelas, v, j, path):
                     print(tabelas[1])
                     tabelas[6] = tabelas[6].append(new_row, ignore_index=True)
                     writerE(tabelas, path)
-                    return tabelas
+                    pC = listaProdutos(tabelas[1], 0)
+                    return tabelas, pC
                 except ValueError as ve:
                     messagebox.showwarning("Erro ao Cadastrar",
                                            'O campo Valor do Produto apenas aceita Números')

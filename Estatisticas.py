@@ -75,7 +75,7 @@ def estatisticas(tabelas, j, data):
     # Lucro Recebido(Vendas-Compras) 'lucroRecebidoT'
     lucro_vendas = tabelas[3].loc[:, 'Valor_Total'].sum()
     prejuizo_compras = tabelas[5].loc[:, 'Valor_Total'].sum()
-    lucro_vc = lucro_vendas - prejuizo_compras
+    lucro_vc = lucro_vendas - int(prejuizo_compras)
     j['lucroRecebidoT'].Update(str(lucro_vc))
     # Produto mais vendido 'produtoMVT'
     my_list = []
