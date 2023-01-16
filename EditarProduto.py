@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 from Funções import writerE, listaProdutos
 
-def janelaEditProduto(produtosExistentes):
+def janelaEditProduto(tabelaP):
+    produtosExistentes = listaProdutos(tabelaP, 2)
     sg.theme('Black')
     layoutP = [
         [sg.Table(values=produtosExistentes, select_mode=sg.SELECT_MODE_BROWSE, enable_events=True,

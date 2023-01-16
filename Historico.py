@@ -1,8 +1,9 @@
 import PySimpleGUI as sg
 import numpy as np
-from Funções import writerE
+from Funções import writerE, listarVC
 
-def janelaHistorico(vendasEfetuadasH,comprasEfetuadasH):
+def janelaHistorico(tabelaVP, tabelaCP):
+    vendasEfetuadasH, comprasEfetuadasH = listarVC(tabelaVP), listarVC(tabelaCP)
     sg.theme('Black')
     colunaV = [
         [sg.ReadFormButton('', key='voltarH', image_filename='Arquivos/Retornar.png', border_width=0,

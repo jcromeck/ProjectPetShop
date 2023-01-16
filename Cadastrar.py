@@ -1,8 +1,11 @@
 import PySimpleGUI as sg
 from tkinter import messagebox
-from Funções import writerE, listaProdutos
+from Funções import writerE, listaProdutos, listaMetodos
+
 # Janela
-def janelaCadastro(metodosdeVenda,metodosdeCompra):
+def janelaCadastro(tabelaM):
+    metodosdeVenda = listaMetodos(tabelaM)
+    metodosdeCompra = ['Outro produto do estoque'] + metodosdeVenda
     sg.theme('Black')
     colunaV = [
         [sg.ReadFormButton('', key='voltarC', image_filename='Arquivos/Retornar.png', border_width=0,
@@ -79,6 +82,7 @@ def EfCad(tabelas, v, j, path, pC):
             if v["Prod"] == "" or v["valorMVenda"] == "" or v['MarcaProduto'] == "" or v["valorMCompra"] == "":
                 messagebox.showwarning("Preencha Todos os campos",
                                        'Preencha os campos corretamente')
+                return tabelas, pC, 0
             else:
                 try:
                     if v['metodoCompra'] == 'Outro produto do estoque':
@@ -104,13 +108,16 @@ def EfCad(tabelas, v, j, path, pC):
                     tabelas[6] = tabelas[6].append(new_row, ignore_index=True)
                     writerE(tabelas, path)
                     pC = listaProdutos(tabelas[1], 0)
-                    return tabelas, pC
+                    return tabelas, pC, 1
                 except ValueError as ve:
                     messagebox.showwarning("Erro ao Cadastrar",
                                            'O campo Valor do Produto apenas aceita Números')
+                    return tabelas, pC, 0
         else:
             messagebox.showwarning("Preencha Todos os campos",
                                    'Preencha o campo de Método de Compra')
+            return tabelas, pC, 0
     else:
         messagebox.showwarning("Preencha Todos os campos",
                                'Preencha o campo de Método de Venda')
+        return tabelas, pC, 0

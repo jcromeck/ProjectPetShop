@@ -43,7 +43,7 @@ def janelaEstatistica():
     ]
     return sg.Window('Estatistica', layout=layoutP, finalize=True)
 
-def estatisticas(tabelas, j, data):
+def Estatisticas(tabelas, j, data):
     # Lucro(Vendas)
     lucro_vendas = tabelas[3].loc[:, 'Valor_Total'].sum()
     j["lucroTotalT"].Update(str(lucro_vendas))

@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import pandas as pd
-from Funções import listaProdutos, listarVC, listarBusca, listaEstoque
+from Funções import listaProdutos, listarVC, listarBusca, listaEstoque, listarID
 from datetime import date
 from Adicionar import *
 from Cadastrar import *
@@ -10,20 +10,20 @@ from Estatisticas import *
 from EditarProduto import *
 from Estoque import *
 
-#CodigoPandas
+# Pandas
 path = "Arquivos/Compras.xlsx"
-pathBackup ="Arquivos/Compras_Backup.xlsx"
 try:
     dDf=pd.read_excel(path, sheet_name=['Métodos', 'Produtos', 'P_Vendas', 'Vendas', 'P_Compras', 'Compras', 'Estoque'])
-    tabela_mtds = dDf.get('Métodos')
-    tabela_pdts = dDf.get('Produtos')
-    tabela_pVds = dDf.get('P_Vendas')
-    tabela_vendas = dDf.get('Vendas')
-    tabela_pCompras = dDf.get('P_Compras')
-    tabela_compras = dDf.get('Compras')
-    tabela_estoque = dDf.get('Estoque')
+    tabelas = [pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(),
+               pd.DataFrame()]
+    tabelas[0] = dDf.get('Métodos')
+    tabelas[1] = dDf.get('Produtos')
+    tabelas[2] = dDf.get('P_Vendas')
+    tabelas[3] = dDf.get('Vendas')
+    tabelas[4] = dDf.get('P_Compras')
+    tabelas[5] = dDf.get('Compras')
+    tabelas[6] = dDf.get('Estoque')
     print("Arquivo Encontrado\n\n")
-    tabelas = [tabela_mtds, tabela_pdts, tabela_pVds, tabela_vendas, tabela_pCompras, tabela_compras, tabela_estoque]
     print("\n\nMétodos\n"+str(tabelas[0]))
     print("\n\nProdutos\n"+str(tabelas[1]))
     print("\n\nProduto_Vendas\n"+str(tabelas[2]))
@@ -32,16 +32,18 @@ try:
     print("\n\nCompras\n"+str(tabelas[5]))
     print("\n\nEstoque\n"+str(tabelas[6]))
 except FileNotFoundError as fnfe:
-    dDf=pd.read_excel(pathBackup, sheet_name=['Métodos','Produtos','P_Vendas','Vendas','P_Compras','Compras','Estoque'])
-    tabela_mtds = dDf.get('Métodos')
-    tabela_pdts = dDf.get('Produtos')
-    tabela_pVds = dDf.get('P_Vendas')
-    tabela_vendas = dDf.get('Vendas')
-    tabela_pCompras = dDf.get('P_Compras')
-    tabela_compras = dDf.get('Compras')
-    tabela_estoque = dDf.get('Estoque')
+    dDf = pd.read_excel("Arquivos/Compras_Backup.xlsx",
+                        sheet_name=['Métodos', 'Produtos', 'P_Vendas', 'Vendas', 'P_Compras', 'Compras', 'Estoque'])
+    tabelas = [pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(),
+               pd.DataFrame()]
+    tabelas[0] = dDf.get('Métodos')
+    tabelas[1] = dDf.get('Produtos')
+    tabelas[2] = dDf.get('P_Vendas')
+    tabelas[3] = dDf.get('Vendas')
+    tabelas[4] = dDf.get('P_Compras')
+    tabelas[5] = dDf.get('Compras')
+    tabelas[6] = dDf.get('Estoque')
     print("Arquivo Não Encontrado, colocando backup\n\n")
-    tabelas = [tabela_mtds, tabela_pdts, tabela_pVds, tabela_vendas, tabela_pCompras, tabela_compras, tabela_estoque]
     print("\n\nMétodos\n"+str(tabelas[0]))
     print("\n\nProdutos\n"+str(tabelas[1]))
     print("\n\nProduto_Vendas\n"+str(tabelas[2]))
@@ -50,32 +52,11 @@ except FileNotFoundError as fnfe:
     print("\n\nCompras\n"+str(tabelas[5]))
     print("\n\nEstoque\n"+str(tabelas[6]))
 
-# Código
-tabela_vendasProv = tabelas[3]
-produtosAVender = []
+# Data
 data_em_texto = date.today().strftime('%d/%m/%Y')
-# Adicionar
-pA = [] # Perfeito
-pCProv = tabelas[4]
-idC = 1 # Listar Ultimo id de Compras +1
-mdC = ['Outro produto do estoque'] + listaMetodos(tabelas[0])
-vT=0
-# Vender
-pAV = []# Perfeito
-tPVP = tabelas[2]
-idV = 10000 #Listar Ultimo id de Vendas +1
-mdV = listaMetodos(tabelas[0])
-vTV = 0
-# Histórico
-vEH = []  # Listar ID, Data, Quantidades Produtos, ValorTotal
-cEH = []  # Listar ID, Data, Quantidades Produtos, ValorTotal
 
-t0P = tabelas[1]
-vI = False; vBC = False
-editTBidx = 0
-editTBn = 0
+# PySimpleGUI
 
-# Layout
 def janelaInicial():
     sg.theme('Black')
     layout = [
@@ -90,9 +71,38 @@ def janelaInicial():
     ]
     return sg.Window('LUME AGROPET', icon='Arquivos/icon.ico', layout=layout, finalize=True)
 
-# Janela
-janelaP, janelaA, janelaC, janelaV, janelaPop, janelaH, janelaE = janelaInicial(), None, None, None, None, None, None
-janelaEP, janelaEst, janelaV2, janelaEPC = None, None, None, None
+
+janelaP = janelaInicial()
+janelaEst, janelaA, janelaV, janelaH, janelaE, janelaEP = None, None, None, None, None, None
+janelaC, janelaV2, janelaEPC = None, None, None
+
+# Provisórios
+tEP = tabelas[1]
+tP_VP = tabelas[2]
+tVP = tabelas[3]
+tP_CP = tabelas[4]
+
+# Ids
+iDc = listarID(tabelas[4])
+iDv = listarID(tabelas[2])
+
+# Produtos adicionados em table
+pA = []
+pAV = []
+pAHC = []
+pAHV = []
+pC = listaProdutos(tabelas[1], 0)
+pV = listaProdutos(tabelas[1], 1)
+
+# Valor Total
+vT = 0
+vTV = 0
+
+vI = False
+vBC = False
+editTBidx = 0
+editTBn = 0
+
 
 # Ler os eventos
 while True:
@@ -102,44 +112,36 @@ while True:
     if janela == janelaP:
         # Adicionar Produto
         if eventos == 'Adicionar Produto':
-            eP, vP = '', ''
-            pC = listaProdutos(tabelas[1], 0)
-            janelaA = janelaAdicionar(pC, eP, vP, pA)
+            janelaA = janelaAdicionar(tabelas[1], pA)
 
         # Vender Produto
         if eventos == 'Vender Produto':
-            eP, vP = '', ''
-            tEP = tabelas[6]
-            pEV = listaProdutos(tabelas[1], 1)
-            janelaV = janelaVender(pEV, pAV, eP, vP)
+            janelaV = janelaVender(pAV, tabelas[1])
 
         # Histórico
         if eventos == 'Histórico':
-            vEH = listarVC(tabelas[3])
-            cEH = listarVC(tabelas[5])
-            janelaH = janelaHistorico(vEH, cEH)
+            janelaH = janelaHistorico(tabelas[3], tabelas[5])
 
         # Estatísticas
         if eventos == 'Estatísticas':
             janelaE = janelaEstatistica()
-            estatisticas(tabelas, janelaE, data_em_texto)
+            Estatisticas(tabelas, janelaE, data_em_texto)
 
         # Editar Produto
         if eventos == 'Editar Produto':
-            pCEP = listaProdutos(tabelas[1], 2)
-            janelaEP = janelaEditProduto(pCEP)
+            janelaEP = janelaEditProduto(tabelas[1])
 
         # Estoque
         if eventos == 'Estoque':
-            estoque = listaEstoque(tabelas[6])
-            janelaEst = janelaEstoque(estoque)
+            janelaEst = janelaEstoque(tabelas[6])
 
         # Fechar Programa
-        if eventos == sg.WINDOW_CLOSED and janela == janelaP or eventos == 'Sair':
+        if janela == janelaP and eventos == sg.WINDOW_CLOSED or eventos == 'Sair':
             break
 
     # ADICIONAR
     if janela == janelaA:
+
         # Fechar Programa(Adicionar)
         if eventos == sg.WINDOW_CLOSED and janela == janelaA:
             janelaA['comboProdutos'].Update('')
@@ -148,87 +150,86 @@ while True:
 
         # Selecionar Produto(Adicionar)
         if eventos == 'comboProdutos':
-            eP, vP = SePr(tabelas, valores, janela)
-            # Feito
+            SePr(tabelas, valores, janela)
 
         # Carrinho(Adicionar)
         if eventos == 'continuarCompra':
-            tEP = tabelas[6]
-            pA, vT, pCProv, tEP = CarAd(tabelas, valores, janela, pCProv, pC, pA, vT, idC, tEP)
+            if valores['comboProdutos'] not in pC:
+                messagebox.showwarning("Erro ao Adicionar",
+                                       'Selecione um produto para adicionar')
+            else:
+                if valores['quantidadeAdicionada'] == "":
+                    messagebox.showwarning("Erro ao Adicionar",
+                                           'Adicione um número no campo Quantidade')
+                else:
+                    try:
+                        if not int(valores['quantidadeAdicionada']) >= 0:
+                            messagebox.showwarning("Erro ao Adicionar",
+                                                   'Valor abaixo de 0 em campo Quantidade')
+                        else:
+                            pA, vT, tP_CP, tEP = CarAd(tabelas, valores, janela, tP_CP, pA, vT, iDc)
+                    except ValueError as ve:
+                        messagebox.showwarning("Erro ao Adicionar",
+                                               'O campo Quantidade apenas aceita Números')
             # Feito
 
         # Cadastro(Adicionar)
         if eventos == 'CadastroProduto':
-            janelaC = janelaCadastro(mdV, mdC)
+            janelaC = janelaCadastro(tabelas[0])
 
         # Excluir(Adicionar)
         if eventos == 'excluirTBEstoque':
-            vT, pCProv, pA = ExC(tabelas, pA, janela, valores, vT, pCProv)
-            # Confirmar funcionamento
+            vT, tP_CP, pA = ExC(tabelas, pA, janela, valores, vT, tP_CP)
 
         # Finalizar(Adicionar)
         if eventos == 'Concluir':
-            tabelas = FinalizarAd(pCProv, tabelas, path, idC, data_em_texto, tEP)
+            tabelas = FinalizarAd(tP_CP, tabelas, path, iDc, data_em_texto, tEP)
             pA = []
             janelaA.close()
 
         # Voltar(Adicionar)
         if eventos == 'voltarA':
-            janelaA.hide()
+            pA = []
+            tEP = tabelas[6]
+            tP_CP = tabelas[4]
+            janelaA.close()
             janelaP.un_hide()
-
-    # CADASTRO
-    if janela == janelaC:
-        # Mudar Visibilidade Metodo Venda(Cadastro)
-        if eventos == 'buttonMetodoVenda':
-            vBC = visCad(vBC, janela)
-            # Feito
-
-        # Confirmar novo Método de Venda(Cadastro)
-        if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
-            mdV, mdC, tabelas = NewM(tabelas, valores, janela, mdV, path)
-            # Feito
-
-        # Adicionar Produto Cadastro(Cadastro)
-        if eventos == 'EfetuarCadastro':
-            tabelas, pC = EfCad(tabelas, valores, janela, path, pC)
-            janelaA['comboProdutos'].Update(values=pC)
-            janelaC.hide()
-            # Feito
-
-        # Fechar Programa(Cadastro)
-        if eventos == sg.WINDOW_CLOSED and janela == janelaC:
-            janelaC.hide()
-            # Feito
-
-        # Voltar(Cadastro)
-        if eventos == 'voltarC' and janela == janelaC:
-            janelaC.hide()
-            janelaA.un_hide()
 
     # VENDER
     if janela == janelaV:
 
         # Fechar Programa(Vender)
         if eventos == sg.WINDOW_CLOSED and janela == janelaV:
-            janelaV['tiposProdutos'].Update('')
-            janelaV["quantidadeAdicionadaV"].Update('')
             janelaV.close()
 
         # Selecionar Produto(Vender)
         if eventos == 'tiposProdutos':
-            ePV, vPV = SePrV(tabelas, valores, janela)
+            SePrV(tabelas, valores, janela)
             # Feito
 
         # Carrinho(Vender)
         if eventos == 'continuarVCompra':
-            vTV, tPVP, pAV, tEP = CarVenda(tabelas, valores, pEV, janela, pAV, vTV, tPVP, idV, tEP)
-            # Validar se tem no estoque
+            if valores['tiposProdutos'] in pV:
+                if not valores['quantidadeAdicionadaV'] == "":
+                    try:
+                        if int(valores['quantidadeAdicionadaV']) >= 0:
+                            vTV, tP_VP, pAV, tEP = CarVenda(tabelas, valores, janela, pAV, vTV, tP_VP, iDv)
+                        else:
+                            messagebox.showwarning("Erro ao Adicionar",
+                                                   'Valor abaixo de 0 não é aceito')
+                    except ValueError as ve:
+                        messagebox.showwarning("Erro ao Adicionar",
+                                               'O campo Quantidade apenas aceita Números')
+                else:
+                    messagebox.showwarning("Erro ao Adicionar",
+                                           'Valor inválido no campo "Quantidade"')
+            else:
+                messagebox.showwarning("Erro ao Adicionar",
+                                       'Selecione um produto para adicionar')
 
         # Excluir Elemento Table(Vender)
         if eventos == 'excluirTBEstoqueV':
-            vTV, tPVP, pAV = ExcV(tabelas, pAV, janela, valores, vTV, tPVP)
-            # Conferir pra ver se ta certo
+            vTV, tP_VP, pAV = ExcV(tabelas, pAV, janela, valores, vTV, tP_VP)
 
         # Finalizar(Venda)
         if eventos == "FinalizarVenda":
@@ -258,8 +259,8 @@ while True:
         # Finalizar Parte 2
         if eventos == 'concluirV':
             if valores['comboPag'] != []:
-                tabelas = FinalizarVpt2(valores, tPVP, tabelas, path, data_em_texto, idV, tEP)
-                idV += 1
+                tabelas = FinalizarVpt2(valores, tP_VP, tabelas, path, data_em_texto, iDv, tEP)
+                iDv += 1
                 janelaV2.close()
                 janelaV.close()
             else:
@@ -268,7 +269,7 @@ while True:
 
         # Atualizar Desconto (Finalizar Pt2)
         if eventos == 'desconto':
-            vTD = AtualizarDesconto(valores, janela, vTV)
+            AtualizarDesconto(valores, janela, vTV)
             # Finalizado
 
     # Histórico
@@ -367,5 +368,35 @@ while True:
         #Fechar Estoque
         if eventos == sg.WINDOW_CLOSED and janela == janelaEst:
             janelaEst.hide()
+
+    # CADASTRO
+    if janela == janelaC:
+        # Mudar Visibilidade Metodo Venda(Cadastro)
+        if eventos == 'buttonMetodoVenda':
+            vBC = visCad(vBC, janela)
+            # Feito
+
+        # Confirmar novo Método de Venda(Cadastro)
+        if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
+            mdV, mdC, tabelas = NewM(tabelas, valores, janela, mdV, path)
+            # Feito
+
+        # Adicionar Produto Cadastro(Cadastro)
+        if eventos == 'EfetuarCadastro':
+            tabelas, pC, nValid = EfCad(tabelas, valores, janela, path, pC)
+            if nValid == 1:
+                janelaA['comboProdutos'].Update(values=pC)
+                janelaC.hide()
+            # Feito
+
+        # Fechar Programa(Cadastro)
+        if eventos == sg.WINDOW_CLOSED and janela == janelaC:
+            janelaC.hide()
+            # Feito
+
+        # Voltar(Cadastro)
+        if eventos == 'voltarC' and janela == janelaC:
+            janelaC.hide()
+            janelaA.un_hide()
 
 janela.close()

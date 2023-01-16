@@ -78,11 +78,8 @@ def listarVC(tabela_vendas):
     my_list = []
     y = []
     for index, rows in tabela_vendas.iterrows():
-        x = str(rows.Data).split(" ")
-        x = x[0].split("-")
-        dataS = x[2] + "/" + x[1] + "/" + x[0]
         my_list.append(rows.ID)
-        my_list.append(dataS)
+        my_list.append(rows.Data)
         my_list.append(rows.QItens)
         my_list.append(rows.Valor_Total)
         y.append(my_list)
@@ -152,4 +149,9 @@ def listaEstoque(tabela_estoque):
         my_list= []
     return y
 
-
+def listarID(tabelaID):
+    n = 0
+    for index, rows in tabelaID.iterrows():
+        n = rows.ID
+    n = int(n)+1
+    return n

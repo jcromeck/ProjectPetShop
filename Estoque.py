@@ -1,6 +1,8 @@
 import PySimpleGUI as sg
+from Funções import listaEstoque
 
-def janelaEstoque(estoque):
+def janelaEstoque(tabelaE):
+    estoque = listaEstoque(tabelaE)
     sg.theme('Black')
     layoutP = [
         [sg.Table(values=estoque, select_mode=sg.SELECT_MODE_BROWSE,
