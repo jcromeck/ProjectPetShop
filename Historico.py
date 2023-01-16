@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 import numpy as np
-from Funções import writerE, listarVC
+from Funções import writerE
 
-def janelaHistorico(tabelaVP, tabelaCP):
-    vendasEfetuadasH, comprasEfetuadasH = listarVC(tabelaVP), listarVC(tabelaCP)
+def janelaHistorico(vendasEfetuadasH, comprasEfetuadasH):
+
     sg.theme('Black')
     colunaV = [
         [sg.ReadFormButton('', key='voltarH', image_filename='Arquivos/Retornar.png', border_width=0,
@@ -72,9 +72,9 @@ def janelaHistorico2(tabelas, strMetodo, idX):
     n = 0
     tabs_layout = []
     if strMetodo == 'Método de Compra':
-        tabela = tabelas[4]
+        tabela = tabelas[4].copy()
     if strMetodo == 'Método de Venda':
-        tabela = tabelas[2]
+        tabela = tabelas[2].copy()
     for index, rows in tabela.iterrows():
         if rows.ID == idX:
             produto = rows.Produto

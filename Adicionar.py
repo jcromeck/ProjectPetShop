@@ -57,7 +57,7 @@ def janelaAdicionar(tabelaP, produtosAdicionados):
     return sg.Window('Adicionar Produtos', icon='Arquivos/icon.ico', layout=layoutP, finalize=True)
 
 # Selecionar Produto
-def SePr(tabelas, v, janela):
+def SePr(tabelas, v, janela, tEP):
     provisorio = v['comboProdutos'].split("-")
     condicao = (tabelas[1]['Produto'] == provisorio[0]) & (tabelas[1]['Marca'] == provisorio[1]) & (
             tabelas[1]['Método_Compra'] == provisorio[2])
@@ -66,7 +66,7 @@ def SePr(tabelas, v, janela):
     somaV = tabelas[1].loc[condicao, :]
     somaV = somaV['Valor_Compra'].sum()
     try:
-        somaE = tabelas[6].loc[condicao2, :]
+        somaE = tEP.loc[condicao2, :]
         estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
@@ -81,8 +81,7 @@ def SePr(tabelas, v, janela):
     janela['valorProdutoModificado'].Update(valorP)
 
 # Carrinho Adicionar
-def CarAd(t, v, j, tP_CP, produtosAdicionados, valorTotal, id):
-    tEP = t[6]
+def CarAd(t, v, j, tP_CP, produtosAdicionados, valorTotal, id, tEP):
     tepp = 0
     n = 0
     quant = int(v['quantidadeAdicionada'])
@@ -116,40 +115,6 @@ def CarAd(t, v, j, tP_CP, produtosAdicionados, valorTotal, id):
     j['estoqueTModificado'].Update('')
     j['valorPTModificado'].Update('')
     return produtosAdicionados, valorTotal, tP_CP, tEP
-
-# Editar Estoque
-def EditE(tabelas, path, j, v, visInput, valorP, estoqueP):
-    if visInput == False:  # ABRINDO INPUT
-        j['estoqueTModificado'].Update(estoqueP, visible=False)
-        j['estoqueModificado'].Update(estoqueP, visible=True)
-        j['valorPTModificado'].Update(valorP, visible=False)
-        j['valorProdutoModificado'].Update(valorP, visible=True)
-        visInput = True
-    else:  # ABRINDO TEXT
-        estoqueP = int(v['estoqueModificado'])
-        valorP = int(v['valorProdutoModificado'])
-        provisorio = v['comboProdutos'].split("-")
-        condicao = (tabelas[1]['Produto'] == provisorio[0]) & (tabelas[1]['Marca'] == provisorio[1]) & (
-                    tabelas[1]['Método_Compra'] == provisorio[2])
-        condicao2 = (tabelas[6]['Produto'] == provisorio[0]) & (tabelas[6]['Marca'] == provisorio[1]) & (
-                    tabelas[6]['Método_Compra'] == provisorio[2]) & (tabelas[6]['Método_Venda'] == provisorio[2])
-        indice = tabelas[1].loc[condicao, :]
-        tabelas[1].at[indice, 'Valor_Compra'] = valorP
-        try:
-            if estoqueP != '0':
-                indice2 = tabelas[6].loc[condicao2, :].index[0]
-                tabelas[6].at[indice2, 'Quantidade'] = estoqueP
-        except IndexError as ie:
-            messagebox.showwarning("Erro ao Editar Estoque",
-                                   'Produto nunca antes adicionado.\nPrecisa adicionar uma vez antes de editar seu estoque')
-            estoqueP = '0'
-        writerE(tabelas, path)
-        j['estoqueTModificado'].Update(estoqueP, visible=True)
-        j['estoqueModificado'].Update(estoqueP, visible=False)
-        j['valorPTModificado'].Update(valorP, visible=True)
-        j['valorProdutoModificado'].Update(valorP, visible=False)
-        visInput = False
-    return visInput, tabelas, valorP, estoqueP
 
 # Excluir Linha Table
 def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
@@ -194,11 +159,11 @@ def FinalizarAd(tP_CP, tabelas, path, id, data, tEP):
     Qtotal = 0
     total = 0
     # Adicionar P_Compras
-    tabelas[4] = tP_CP
+    tabelas[4] = tP_CP.copy()
     # Adicionar Estoque
-    tabelas[6] = tEP
+    tabelas[6] = tEP.copy()
     condicao = tabelas[4]['ID'] == str(id)
-    quant = tabelas[4].loc[condicao, 'Quantidade']
+    quant = tabelas[4].loc[condicao, ['Quantidade', 'Valor_Total']]
     for n in range(len(quant)):
         Qtotal += int(quant['Quantidade'][n])
         total += float(quant['Valor_Total'][n])

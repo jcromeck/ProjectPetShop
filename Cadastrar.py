@@ -3,9 +3,7 @@ from tkinter import messagebox
 from Funções import writerE, listaProdutos, listaMetodos
 
 # Janela
-def janelaCadastro(tabelaM):
-    metodosdeVenda = listaMetodos(tabelaM)
-    metodosdeCompra = ['Outro produto do estoque'] + metodosdeVenda
+def janelaCadastro(metodosdeVenda, metodosdeCompra):
     sg.theme('Black')
     colunaV = [
         [sg.ReadFormButton('', key='voltarC', image_filename='Arquivos/Retornar.png', border_width=0,
@@ -61,9 +59,9 @@ def visCad(visBCad, j):
         visBCad = False
     return visBCad
 # Cadastrar Método Novo
-def NewM(tabelas, v, j, metodosdeVenda, path):
+def NewM(tabelas, v, j, path, metodosdeVenda, metodosdeCompra):
     metodosdeVenda.append(v['novoMetodoVendaInput'])
-    metodosdeCompra = ['Outro produto do estoque'] + metodosdeVenda
+    metodosdeCompra.append(v['novoMetodoVendaInput'])
     new_row = {'Método': v["novoMetodoVendaInput"]}
     tabelas[0] = tabelas[0].append(new_row, ignore_index=True)
     writerE(tabelas, path)

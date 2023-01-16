@@ -77,14 +77,19 @@ janelaEst, janelaA, janelaV, janelaH, janelaE, janelaEP = None, None, None, None
 janelaC, janelaV2, janelaEPC = None, None, None
 
 # Provisórios
-tEP = tabelas[1]
-tP_VP = tabelas[2]
-tVP = tabelas[3]
-tP_CP = tabelas[4]
+tPP = tabelas[1].copy()
+tP_VP = tabelas[2].copy()
+tVP = tabelas[3].copy()
+tP_CP = tabelas[4].copy()
+tEP = tabelas[6].copy()
 
 # Ids
 iDc = listarID(tabelas[4])
 iDv = listarID(tabelas[2])
+
+# Métodos
+mdV = listaMetodos(tabelas[0])
+mdC = ['Outro produto do estoque'] + mdV.copy()
 
 # Produtos adicionados em table
 pA = []
@@ -93,6 +98,8 @@ pAHC = []
 pAHV = []
 pC = listaProdutos(tabelas[1], 0)
 pV = listaProdutos(tabelas[1], 1)
+cEH, vEH = listarVC(tabelas[5]), listarVC(tabelas[3])
+pEd = listaProdutos(tabelas[1], 2)
 
 # Valor Total
 vT = 0
@@ -120,7 +127,7 @@ while True:
 
         # Histórico
         if eventos == 'Histórico':
-            janelaH = janelaHistorico(tabelas[3], tabelas[5])
+            janelaH = janelaHistorico(vEH, cEH)
 
         # Estatísticas
         if eventos == 'Estatísticas':
@@ -129,7 +136,7 @@ while True:
 
         # Editar Produto
         if eventos == 'Editar Produto':
-            janelaEP = janelaEditProduto(tabelas[1])
+            janelaEP = janelaEditProduto(pEd)
 
         # Estoque
         if eventos == 'Estoque':
@@ -150,7 +157,7 @@ while True:
 
         # Selecionar Produto(Adicionar)
         if eventos == 'comboProdutos':
-            SePr(tabelas, valores, janela)
+            SePr(tabelas, valores, janela, tEP)
 
         # Carrinho(Adicionar)
         if eventos == 'continuarCompra':
@@ -167,7 +174,7 @@ while True:
                             messagebox.showwarning("Erro ao Adicionar",
                                                    'Valor abaixo de 0 em campo Quantidade')
                         else:
-                            pA, vT, tP_CP, tEP = CarAd(tabelas, valores, janela, tP_CP, pA, vT, iDc)
+                            pA, vT, tP_CP, tEP = CarAd(tabelas, valores, janela, tP_CP, pA, vT, iDc, tEP)
                     except ValueError as ve:
                         messagebox.showwarning("Erro ao Adicionar",
                                                'O campo Quantidade apenas aceita Números')
@@ -190,8 +197,8 @@ while True:
         # Voltar(Adicionar)
         if eventos == 'voltarA':
             pA = []
-            tEP = tabelas[6]
-            tP_CP = tabelas[4]
+            tEP = tabelas[6].copy()
+            tP_CP = tabelas[4].copy()
             janelaA.close()
             janelaP.un_hide()
 
@@ -213,7 +220,7 @@ while True:
                 if not valores['quantidadeAdicionadaV'] == "":
                     try:
                         if int(valores['quantidadeAdicionadaV']) >= 0:
-                            vTV, tP_VP, pAV, tEP = CarVenda(tabelas, valores, janela, pAV, vTV, tP_VP, iDv)
+                            vTV, tP_VP, pAV, tEP = CarVenda(tabelas, valores, janela, pAV, vTV, tP_VP, iDv, tEP)
                         else:
                             messagebox.showwarning("Erro ao Adicionar",
                                                    'Valor abaixo de 0 não é aceito')
@@ -341,20 +348,20 @@ while True:
 
         # Confirmar novo Método de Venda(Cadastro)
         if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
-            mdV, mdC, tabelas = NewM(tabelas, valores, janela, mdV, path)
+            mdV, mdC, tabelas = NewM(tabelas, valores, janela, path, mdV, mdC)
             # Feito
 
         # Selecionar Produto(Editar Produto)
         if eventos == '-TBEP-':
             janelaEP.close()
             janelaEP = janelaCadastro(mdV, mdC)
-            selProd(tabelas[0], janelaEP, pCEP[valores['-TBEP-'][0]])
+            selProd(tabelas[0], janelaEP, pEd[valores['-TBEP-'][0]])
             idxPCEP = valores['-TBEP-'][0]
 
         # Voltar(Cadastro- Editar Produto)
         if eventos == 'voltarC' and janela == janelaEP:
             janelaEP.close()
-            janelaEP = janelaEditProduto(pCEP)
+            janelaEP = janelaEditProduto(pEd)
 
         # Ao finalizar retira um produto e adiciona outro
         if eventos == 'EfetuarCadastro':
@@ -378,7 +385,7 @@ while True:
 
         # Confirmar novo Método de Venda(Cadastro)
         if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
-            mdV, mdC, tabelas = NewM(tabelas, valores, janela, mdV, path)
+            tabelas = NewM(tabelas, valores, janela, path)
             # Feito
 
         # Adicionar Produto Cadastro(Cadastro)

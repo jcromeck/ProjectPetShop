@@ -52,8 +52,7 @@ def janelaVender(produtosAVender, tabelaP):
     return sg.Window('Vender Produtos', icon='Arquivos/icon.ico', layout=layout, finalize=True)
 
 # Carrinho
-def CarVenda(t, v, j, pAV, vTV, tPVP, id):
-    tEP = t[6]
+def CarVenda(t, v, j, pAV, vTV, tPVP, id, tEP):
     tepp = 0
     n = 0
     quant = int(v['quantidadeAdicionadaV'])
@@ -103,7 +102,7 @@ def SePrV(tabelas, v, janela):
         estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
-    valorP = somaV/len(tabelas[1].loc[condicao, :])
+    valorP = int(somaV)/len(tabelas[1].loc[condicao, :])
     janela['estoqueTVModificado'].Update(estoqueP)
     janela['valorPTVModificado'].Update(valorP)
     janela['estoqueVModificado'].Update(estoqueP)
