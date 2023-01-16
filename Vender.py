@@ -66,7 +66,7 @@ def CarVenda(t, v, pE, j, pAV, vTV, tPVP, id, tEP):
                                          produto[5] + " R$", produto[6] + " R$"]
                     pAV.append(produtoAdicionado)
                     j['tV_produtos'].Update(values=pAV)
-                    vTV += float(produto[5])
+                    vTV += float(produto[6])
                     j["valorTotalV"].Update('+' + str(vTV) + ' R$')
                     j["quantidadeAdicionadaV"].Update("")
                     j["tiposProdutos"].Update("")
@@ -134,39 +134,27 @@ def ExcV(t, pAV, j, v, vTV, tPVP):
                                'Precisa Selecionar o Dado na Tabela antes de Deletar')
     else:
         for row in range(len(pAV)):
-            if pAV[row][0] == data_selected[0][0] and \
-                    pAV[row][1] == data_selected[0][1] and \
-                    pAV[row][2] == data_selected[0][2] and \
-                    pAV[row][3] == data_selected[0][3] and \
-                    pAV[row][4] == data_selected[0][4] and \
-                    pAV[row][5] == data_selected[0][5]:
-                print(type(tPVP['Valor_Un']))
-                condicao = (tPVP['Produto'] == data_selected[0][0])
-                condicao = (tPVP['Marca'] == data_selected[0][1])
-                condicao = (tPVP['Método'] == data_selected[0][2])
-                condicao = (tPVP['Quantidade'] == data_selected[0][3])
-                print(data_selected[0][4])
-                print(tPVP['Valor_Un'])
-                print(data_selected[0][5])
-                print(tPVP['Valor_Total'])
-                condicao = (tPVP['Valor_Un'] + str(' R$') == data_selected[0][4])
-                condicao = (tPVP['Valor_Total'] + str(' R$') == data_selected[0][5])
+            if pAV[row][0] == data_selected[0][0] and pAV[row][1] == data_selected[0][1] and \
+               pAV[row][2] == data_selected[0][2] and pAV[row][3] == data_selected[0][3] and \
+               pAV[row][4] == data_selected[0][4] and pAV[row][5] == data_selected[0][5]:
+                condicao = (tPVP['Produto'] == data_selected[0][0]) & (tPVP['Marca'] == data_selected[0][1]) & (
+                            tPVP['Método'] == data_selected[0][2]) & (tPVP['Quantidade'] == data_selected[0][3]) & (
+                            tPVP['Valor_Un'] + str(' R$') == data_selected[0][4]) & (
+                            tPVP['Valor_Total'] + str(' R$') == data_selected[0][5])
                 condicao2 = (t[6]['Produto'] == data_selected[0][0]) & (t[6]['Marca'] == data_selected[0][1]) & (
                         t[6]['Método'] == data_selected[0][2])
                 indice = tPVP.loc[condicao, :].index[-1]
                 indice2 = t[6].loc[condicao2, :].index[0]
-                print(indice)
                 quantAntes = t[6].at[indice2, 'Quantidade']
-                print(quantAntes)
-                quantSub = data_selected[0][3]
-                t[6].at[indice2, 'Quantidade'] = int(quantAntes) + int(quantSub)
-                tPVP.drop(indice)
+                quantAdd = data_selected[0][3]
+                t[6].at[indice2, 'Quantidade'] = int(quantAntes) + int(quantAdd)
+                tPVP = tPVP.drop(int(indice))
                 pAV.pop(row)
                 break
         j['tV_produtos'].Update(values=pAV)
         xProv = data_selected[0][5].split(" ")
         vTV -= float(xProv[0])
-        j["valorTotalV"].Update('-' + str(vTV) + ' R$')
+        j["valorTotalV"].Update('+' + str(vTV) + ' R$')
     return vTV, tPVP, pAV
 
 def janelaVender2(valorTotalVenda):
@@ -181,14 +169,14 @@ def janelaVender2(valorTotalVenda):
         [sg.Text('Valor Total: '), sg.Text(valorTotalVenda, text_color='green', key='vTV')],
         [sg.Text('', expand_x=True, justification='Right')],
         [sg.Text('Desconto: '), sg.InputText(key='desconto', enable_events=True, size=(10, 1))],
-        [sg.Checkbox('Frete', key='frete', enable_events=True)],
+        [sg.Checkbox('Frete', key='frete', enable_events=False)],
         [sg.Text('', expand_x=True, justification='Right')],
-        [sg.Text('Valor Descontado: '), sg.Text('', key='valorD', text_color='red')],
-        [sg.Text('Valor Total com Desconto: '), sg.Text('', key='valorTcD', text_color='green')]
+        [sg.Text('Valor Descontado: '), sg.Text(0.0, key='valorD', text_color='red')],
+        [sg.Text('Valor Total com Desconto: '), sg.Text(valorTotalVenda, key='valorTcD', text_color='green')]
     ]
     coluna2 = [
         [sg.Text('Método de Pagamento: ')],
-        [sg.Combo(['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Dinheiro'], key='comboPag')],
+        [sg.Combo(['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Dinheiro'], key='comboPag', readonly=True)],
         [sg.Text('Comentários: ')],
         [sg.Multiline('', key='mT', no_scrollbar=True, size=(30, 7))]
     ]
@@ -220,27 +208,39 @@ def AtualizarDesconto(v, j, vTV):
         j['valorTcD'].Update('')
         return vTV
 
-def FinalizarVpt2(v, tPVP, tabelas, path, data, id, valorTotalcDesconto):
+def FinalizarVpt2(v, tPVP, tabelas, path, data, id, tEProv):
+    Qtotal = 0
+    total = 0
     # Atualizar P_Vendas
     tabelas[2] = tPVP
-    condicao = (str(tabelas[2]['ID']) == str(id))
-    quant = tabelas[2].loc[condicao, :].sum()
+    # Atualizar Estoque
+    tabelas[6] = tEProv
+    condicao = (tabelas[2]['ID'] == str(id))
+    quant = tabelas[2].loc[condicao, ['Valor_Total', 'Quantidade']]
+    for n in range(len(quant)):
+        Qtotal += int(quant['Quantidade'][n])
+        total += float(quant['Valor_Total'][n])
     if v['frete'] == True:
         frete = 'Sim'
     else:
         frete = 'Não'
-    data = data.split(" ")
-    data = data[0].split("-")
-    data = data[2] + "/" + data[1] + "/" + data[0]
+    if v['desconto'] == '':
+        desconto = 0
+    else:
+        desconto = v['desconto']
+    if int(desconto) <= total:
+        total = total - int(desconto)
+    #else:
+        #Mensagem
     # Atualizar Vendas
     new_row = {'ID': id,
-               'QItens': quant,
+               'QItens': Qtotal,
                'Frete': frete,
-               'Desconto': str(float(v['desconto'])),
+               'Desconto': str(float(desconto)),
                'MétodoPagamento': v['comboPag'],
                'Comentários': v['mT'],
                'Data': data,
-               'Valor_Total': valorTotalcDesconto}
+               'Valor_Total': total}
     tabelas[3] = tabelas[3].append(new_row, ignore_index=True)
     writerE(tabelas, path)
     return tabelas

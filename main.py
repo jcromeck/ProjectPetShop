@@ -103,7 +103,6 @@ while True:
         # Adicionar Produto
         if eventos == 'Adicionar Produto':
             eP, vP = '', ''
-            tEP = tabelas[6]
             pC = listaProdutos(tabelas[1], 0)
             janelaA = janelaAdicionar(pC, eP, vP, pA)
 
@@ -154,6 +153,7 @@ while True:
 
         # Carrinho(Adicionar)
         if eventos == 'continuarCompra':
+            tEP = tabelas[6]
             pA, vT, pCProv, tEP = CarAd(tabelas, valores, janela, pCProv, pC, pA, vT, idC, tEP)
             # Feito
 
@@ -190,19 +190,11 @@ while True:
             # Feito
 
         # Adicionar Produto Cadastro(Cadastro)
-        if eventos == 'EfetuarCadastro' and janela == janelaC:
+        if eventos == 'EfetuarCadastro':
             tabelas, pC = EfCad(tabelas, valores, janela, path, pC)
             janelaA['comboProdutos'].Update(values=pC)
             janelaC.hide()
             # Feito
-
-        # Editar Produto(Cadastro)
-        if eventos == 'EfetuarCadastro' and janela == janelaEPC:
-            pCEP, tabelas = FinalizarEdit(tabelas, idxEdit, valores, janelaEPC, pCEP, path)
-            janelaEPC.close()
-            janelaEP.close()
-            pCEP = listaProdutos(tabelas[1], 2)
-            janelaEP = janelaEditProduto(pCEP)
 
         # Fechar Programa(Cadastro)
         if eventos == sg.WINDOW_CLOSED and janela == janelaC:
@@ -240,8 +232,9 @@ while True:
 
         # Finalizar(Venda)
         if eventos == "FinalizarVenda":
-            if pAV == []:
+            if pAV != []:
                 janelaV2 = janelaVender2(vTV)
+                janelaV.hide()
             else:
                 messagebox.showwarning("Erro ao Finalizar",
                                        "Não há produtos a vender para poder Finalizar")
@@ -264,8 +257,8 @@ while True:
 
         # Finalizar Parte 2
         if eventos == 'concluirV':
-            if valores['comboPag'] == []:
-                tabelas = FinalizarVpt2(valores, tPVP, tabelas, path, data_em_texto, idV)
+            if valores['comboPag'] != []:
+                tabelas = FinalizarVpt2(valores, tPVP, tabelas, path, data_em_texto, idV, tEP)
                 idV += 1
                 janelaV2.close()
                 janelaV.close()
@@ -340,25 +333,34 @@ while True:
         if eventos == sg.WINDOW_CLOSED and janela == janelaEP:
             janelaEP.close()
 
+        # Mudar Visibilidade Metodo Venda(Cadastro)
+        if eventos == 'buttonMetodoVenda':
+            vBC = visCad(vBC, janela)
+            # Feito
+
+        # Confirmar novo Método de Venda(Cadastro)
+        if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
+            mdV, mdC, tabelas = NewM(tabelas, valores, janela, mdV, path)
+            # Feito
+
         # Selecionar Produto(Editar Produto)
         if eventos == '-TBEP-':
-            janelaEPC = janelaCadastro(mdV, mdC)
-            print(tabelas[0])
-            selProd(tabelas[0], janelaEPC, pCEP[valores['-TBEP-'][0]])
-            idxEdit = valores['-TBEP-'][0]
-
-    # Editar Produto(Cadastro)
-    if janela == janelaEPC:
-        # Fechar Editar Produto - Cadastro
-        if eventos == sg.WINDOW_CLOSED and janela == janelaEPC:
-            janelaEPC.close()
+            janelaEP.close()
+            janelaEP = janelaCadastro(mdV, mdC)
+            selProd(tabelas[0], janelaEP, pCEP[valores['-TBEP-'][0]])
+            idxPCEP = valores['-TBEP-'][0]
 
         # Voltar(Cadastro- Editar Produto)
-        if eventos == 'voltarC' and janela == janelaEPC:
-            janelaEPC.hide()
-            janelaEP.un_hide()
+        if eventos == 'voltarC' and janela == janelaEP:
+            janelaEP.close()
+            janelaEP = janelaEditProduto(pCEP)
 
         # Ao finalizar retira um produto e adiciona outro
+        if eventos == 'EfetuarCadastro':
+            tabelas = FinalizarEdit(tabelas, idxPCEP, valores, janela, path)
+            janelaEP.close()
+            pCEP = listaProdutos(tabelas[1], 2)
+            janelaEP = janelaEditProduto(pCEP)
 
     # Estoque
     if janela == janelaEst:

@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from Funções import writerE, listaMetodos
+from Funções import writerE, listaProdutos
 
 def janelaEditProduto(produtosExistentes):
     sg.theme('Black')
@@ -30,21 +30,54 @@ def selProd(tabela_metodo, janelaEdP, PCEPcIdx):
     janelaEdP['valorMVenda'].Update(PCEPcIdx[3])
     janelaEdP['valorMCompra'].Update(PCEPcIdx[5])
 
-def FinalizarEdit(tabelas, index, v, j, PCEP, path):
-    prov = [str(v['Prod']), str(v['MarcaProduto']), str(j['metodoVenda'].get()[0]),
-            str(v['valorMVenda']), str(j['metodoCompra'].get()[0]), str(v['valorMCompra'])]
-    PCEP[index] = prov
+def FinalizarEdit(tabelas, idx, v, j, path):
+    difs = [0, 0, 0, 0]
+    repEst = 'Não'
     if str(j['metodoCompra'].get()[0]) == 'Outro produto do estoque':
         repEst = 'Sim'
-    else:
-        repEst = 'Não'
-    prov = {'Produto': str(v['Prod']),
-            'Marca': str(v['MarcaProduto']),
-            'Método_Compra': str(j['metodoCompra'].get()[0]),
-            'Método_Venda': str(j['metodoVenda'].get()[0]),
+    if tabelas[1].loc[idx, 'Produto'] != v['Prod']:
+        difs[0] = 1
+    if tabelas[1].loc[idx, 'Marca'] != v['MarcaProduto']:
+        difs[1] = 1
+    if tabelas[1].loc[idx, 'Método_Venda'] != j['metodoVenda'].get()[0]:
+        difs[2] = 1
+    if tabelas[1].loc[idx, 'Método_Compra'] != j['metodoCompra'].get()[0]:
+        difs[3] = 1
+    for index, rows in tabelas[2].iterrows():
+        if tabelas[1].loc[idx, 'Produto'] == rows.Produto and tabelas[1].loc[idx, 'Marca'] == rows.Marca and \
+           tabelas[1].loc[idx, 'Método_Venda'] == rows.Método:
+            if difs[0] == 1:
+                tabelas[2].at[index, 'Produto'] = str(v['Prod'])
+            if difs[1] == 1:
+                tabelas[2].at[index, 'Marca'] = str(v['MarcaProduto'])
+            if difs[2] == 1:
+                tabelas[2].at[index, 'Método'] = str(j['metodoVenda'].get()[0])
+    for index, rows in tabelas[4].iterrows():
+        if tabelas[1].loc[idx, 'Produto'] == rows.Produto and tabelas[1].loc[idx, 'Marca'] == rows.Marca and \
+           tabelas[1].loc[idx, 'Método_Compra'] == rows.Método:
+            if difs[0] == 1:
+                tabelas[4].at[index, 'Produto'] = str(v['Prod'])
+            if difs[1] == 1:
+                tabelas[4].at[index, 'Marca'] = str(v['MarcaProduto'])
+            if difs[3] == 1:
+                tabelas[4].at[index, 'Método'] = str(j['metodoCompra'].get()[0])
+    for index, rows in tabelas[6].iterrows():
+        if tabelas[1].loc[idx, 'Produto'] == rows.Produto and tabelas[1].loc[idx, 'Marca'] == rows.Marca and \
+           tabelas[1].loc[idx, 'Método_Venda'] == rows.Método:
+            if difs[0] == 1:
+                tabelas[6].at[index, 'Produto'] = str(v['Prod'])
+            if difs[1] == 1:
+                tabelas[6].at[index, 'Marca'] = str(v['MarcaProduto'])
+            if difs[2] == 1:
+                tabelas[6].at[index, 'Método'] = str(j['metodoVenda'].get()[0])
+            break
+    prov = {'Produto': v['Prod'],
+            'Marca': v['MarcaProduto'],
+            'Método_Compra': j['metodoCompra'].get()[0],
+            'Método_Venda': j['metodoVenda'].get()[0],
             'Valor_Compra': str(v['valorMCompra']),
             'Valor_Venda': str(v['valorMVenda']),
             'ReporEstoquepProd': repEst}
-    tabelas[1].loc[index] = prov
+    tabelas[1].loc[idx] = prov
     writerE(tabelas, path)
-    return PCEP, tabelas
+    return tabelas

@@ -111,7 +111,6 @@ def CarAd(t, v, j, p_ComprasProv, produtosCadastrados, produtosAdicionados, valo
                         if p_ComprasP[1] == rows.Produto and p_ComprasP[2] == rows.Marca and p_ComprasP[
                             3] == rows.Método:
                             print(tEP)
-                            print(tEP.at[index, 'Quantidade'])
                             tepp = int(p_ComprasP[4]) + int(tEP.at[index, 'Quantidade'])
                     tEP.at[index, 'Quantidade'] = tepp
                     p_ComprasProv = p_ComprasProv.append(new_row, ignore_index=True)
@@ -196,7 +195,7 @@ def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
                 print(quantAntes)
                 quantSub = data_selected[0][3]
                 t[6].at[indice2, 'Quantidade'] = int(quantAntes) - int(quantSub)
-                p_ComprasProv.drop(indice)
+                p_ComprasProv = p_ComprasProv.drop(int(indice))
                 produtosAdicionados.pop(row)
                 break
         j['-TB-'].Update(values=produtosAdicionados)
