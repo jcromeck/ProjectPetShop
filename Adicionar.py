@@ -28,7 +28,7 @@ def janelaAdicionar(tabelaP, produtosAdicionados):
     layoutA = [
         [sg.Text('', size=(0,2))],
         [sg.Text("Produto")],
-        [sg.Combo(produtosCadastrados, size=(40,2),key="comboProdutos", readonly=True, enable_events=True)],
+        [sg.Combo(produtosCadastrados, size=(40, 20), font=(None, 18),key="comboProdutos", readonly=True, enable_events=True, auto_size_text=True)],
         [sg.Text('')],
         [sg.Text("Quantidade: "),sg.InputText(key="quantidadeAdicionada",size=(3,3),expand_x=True)],
         [sg.Text('')],
@@ -70,10 +70,6 @@ def SePr(tabelas, v, janela, tEP):
         estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
-    print(somaV)
-    print(type(somaV))
-    print(tabelas[1].loc[condicao, :])
-    print(len(tabelas[1].loc[condicao, :]))
     valorP = int(somaV)/len(tabelas[1].loc[condicao, :])
     janela['estoqueTModificado'].Update(estoqueP)
     janela['valorPTModificado'].Update(valorP)
@@ -117,42 +113,40 @@ def CarAd(t, v, j, tP_CP, produtosAdicionados, valorTotal, id, tEP):
     return produtosAdicionados, valorTotal, tP_CP, tEP
 
 # Excluir Linha Table
-def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv):
-    data_selected = [produtosAdicionados[row] for row in v['-TB-']]
-    if data_selected == []:
-        messagebox.showwarning("Impossível Deletar Dado",
-                               'Precisa Selecionar o Dado na Tabela antes de Deletar')
-    else:
-        for row in range(len(produtosAdicionados)):
-            if produtosAdicionados[row][0] == data_selected[0][0] and \
-                    produtosAdicionados[row][1] == data_selected[0][1] and \
-                    produtosAdicionados[row][2] == data_selected[0][2] and \
-                    produtosAdicionados[row][3] == data_selected[0][3] and \
-                    produtosAdicionados[row][4] == data_selected[0][4] and \
-                    produtosAdicionados[row][5] == data_selected[0][5]:
-                condicao = (p_ComprasProv['Produto'] == data_selected[0][0]) & (
-                            p_ComprasProv['Marca'] == data_selected[0][1]) & (
-                            p_ComprasProv['Método'] == data_selected[0][2]) & (
-                            p_ComprasProv['Quantidade'] == data_selected[0][3]) & (
-                            p_ComprasProv['Valor_Un']+str(' R$') == data_selected[0][4]) & (
-                            p_ComprasProv['Valor_Total']+str(' R$') == data_selected[0][5])
-                condicao2 = (t[6]['Produto'] == data_selected[0][0]) & (t[6]['Marca'] == data_selected[0][1]) & (
-                            t[6]['Método'] == data_selected[0][2])
-                indice = p_ComprasProv.loc[condicao, :].index[-1]
-                indice2 = t[6].loc[condicao2, :].index[0]
-                print(indice)
-                quantAntes = t[6].at[indice2, 'Quantidade']
-                print(quantAntes)
-                quantSub = data_selected[0][3]
-                t[6].at[indice2, 'Quantidade'] = int(quantAntes) - int(quantSub)
-                p_ComprasProv = p_ComprasProv.drop(int(indice))
-                produtosAdicionados.pop(row)
-                break
-        j['-TB-'].Update(values=produtosAdicionados)
-        xProv = data_selected[0][5].split(" ")
-        valorTotal -= float(xProv[0])
-        j["valorTotal"].Update('-' + str(valorTotal) + ' R$')
-    return valorTotal, p_ComprasProv, produtosAdicionados
+def ExC(t, produtosAdicionados, j, v, valorTotal, p_ComprasProv, tEP, data_selected):
+    for row in range(len(produtosAdicionados)):
+        if produtosAdicionados[row][0] == data_selected[0][0] and \
+           produtosAdicionados[row][1] == data_selected[0][1] and \
+           produtosAdicionados[row][2] == data_selected[0][2] and \
+           produtosAdicionados[row][3] == data_selected[0][3] and \
+           produtosAdicionados[row][4] == data_selected[0][4] and \
+           produtosAdicionados[row][5] == data_selected[0][5]:
+            p = data_selected[0][4].split(' ')
+            pp = data_selected[0][5].split(' ')
+            data_selected[0][4] = p[0]
+            data_selected[0][5] = pp[0]
+
+            condicao = (p_ComprasProv['Produto'] == data_selected[0][0]) & (
+                        p_ComprasProv['Marca'] == data_selected[0][1]) & (
+                        p_ComprasProv['Método'] == data_selected[0][2]) & (
+                        p_ComprasProv['Quantidade'] == data_selected[0][3]) & (
+                        p_ComprasProv['Valor_Un'] == data_selected[0][4]) & (
+                        p_ComprasProv['Valor_Total'] == data_selected[0][5])
+            condicao2 = (tEP['Produto'] == data_selected[0][0]) & (tEP['Marca'] == data_selected[0][1]) & (
+                         tEP['Método'] == data_selected[0][2])
+            indice = p_ComprasProv.loc[condicao, :].index[-1]
+            indice2 = tEP.loc[condicao2, :].index[0]
+            quantAntes = tEP.at[indice2, 'Quantidade']
+            quantSub = data_selected[0][3]
+            tEP.at[indice2, 'Quantidade'] = int(quantAntes) - int(quantSub)
+            p_ComprasProv = p_ComprasProv.drop(int(indice))
+            produtosAdicionados.pop(row)
+            break
+    j['-TB-'].Update(values=produtosAdicionados)
+    xProv = data_selected[0][5].split(" ")
+    valorTotal -= float(xProv[0])
+    j["valorTotal"].Update('-' + str(valorTotal) + ' R$')
+    return valorTotal, p_ComprasProv, produtosAdicionados, tEP
 
 # Finalizar
 def FinalizarAd(tP_CP, tabelas, path, id, data, tEP):
@@ -164,9 +158,10 @@ def FinalizarAd(tP_CP, tabelas, path, id, data, tEP):
     tabelas[6] = tEP.copy()
     condicao = tabelas[4]['ID'] == str(id)
     quant = tabelas[4].loc[condicao, ['Quantidade', 'Valor_Total']]
-    for n in range(len(quant)):
-        Qtotal += int(quant['Quantidade'][n])
-        total += float(quant['Valor_Total'][n])
+    for num in range(len(quant)):
+        if quant.first_valid_index() <= num:
+            Qtotal += int(quant['Quantidade'][num])
+            total += float(quant['Valor_Total'][num])
     # Adicionar Compras
     new_row = {'ID': id,
                'QItens': Qtotal,

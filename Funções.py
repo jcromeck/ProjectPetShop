@@ -8,8 +8,8 @@ def listaProdutos(tabela_produtos, n):
             k = 0
             m_l.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)
             for m in range(len(m_l)):
-                for n in range(len(my_list)):
-                    if m_l[m] == my_list[n]:
+                for num in range(len(my_list)):
+                    if m_l[m] == my_list[num]:
                         k = 1
             if k == 0:
                 my_list.append(rows.Produto+"-"+rows.Marca + "-" + rows.Método_Compra)

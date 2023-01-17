@@ -82,14 +82,14 @@ def CarVenda(t, v, j, pAV, vTV, tPVP, id, tEP):
             tepp = int(tEP.at[index, 'Quantidade']) - int(produtosProv[4])
             n = index
             break
-    tEP.at[index, 'Quantidade'] = tepp
+    tEP.at[n, 'Quantidade'] = tepp
     tPVP = tPVP.append(new_row, ignore_index=True)
     j['estoqueTVModificado'].Update('')
     j['valorPTVModificado'].Update('')
     return vTV, tPVP, pAV, tEP
 
 # Selecionar Combo
-def SePrV(tabelas, v, janela):
+def SePrV(tabelas, v, janela, tEP):
     provisorio = v['tiposProdutos'].split("-")
     condicao = (tabelas[1]['Produto'] == provisorio[0]) & (tabelas[1]['Marca'] == provisorio[1]) & (
             tabelas[1]['Método_Venda'] == provisorio[2])
@@ -98,7 +98,7 @@ def SePrV(tabelas, v, janela):
     somaV = tabelas[1].loc[condicao, :]
     somaV = somaV['Valor_Venda'].sum()
     try:
-        somaE = tabelas[6].loc[condicao2, :]
+        somaE = tEP.loc[condicao2, :]
         estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
@@ -109,35 +109,30 @@ def SePrV(tabelas, v, janela):
     janela['valorProdutoVModificado'].Update(valorP)
 
 # Excluir Elemento Table
-def ExcV(t, pAV, j, v, vTV, tPVP):
-    data_selected = [pAV[row] for row in v['tV_produtos']]
-    if data_selected == []:
-        messagebox.showwarning("Impossível Deletar Dado",
-                               'Precisa Selecionar o Dado na Tabela antes de Deletar')
-    else:
-        for row in range(len(pAV)):
-            if pAV[row][0] == data_selected[0][0] and pAV[row][1] == data_selected[0][1] and \
-               pAV[row][2] == data_selected[0][2] and pAV[row][3] == data_selected[0][3] and \
-               pAV[row][4] == data_selected[0][4] and pAV[row][5] == data_selected[0][5]:
-                condicao = (tPVP['Produto'] == data_selected[0][0]) & (tPVP['Marca'] == data_selected[0][1]) & (
-                            tPVP['Método'] == data_selected[0][2]) & (tPVP['Quantidade'] == data_selected[0][3]) & (
-                            tPVP['Valor_Un'] + str(' R$') == data_selected[0][4]) & (
-                            tPVP['Valor_Total'] + str(' R$') == data_selected[0][5])
-                condicao2 = (t[6]['Produto'] == data_selected[0][0]) & (t[6]['Marca'] == data_selected[0][1]) & (
-                        t[6]['Método'] == data_selected[0][2])
-                indice = tPVP.loc[condicao, :].index[-1]
-                indice2 = t[6].loc[condicao2, :].index[0]
-                quantAntes = t[6].at[indice2, 'Quantidade']
-                quantAdd = data_selected[0][3]
-                t[6].at[indice2, 'Quantidade'] = int(quantAntes) + int(quantAdd)
-                tPVP = tPVP.drop(int(indice))
-                pAV.pop(row)
-                break
-        j['tV_produtos'].Update(values=pAV)
-        xProv = data_selected[0][5].split(" ")
-        vTV -= float(xProv[0])
-        j["valorTotalV"].Update('+' + str(vTV) + ' R$')
-    return vTV, tPVP, pAV
+def ExcV(t, pAV, j, v, vTV, tPVP, tEP, data_selected):
+    for row in range(len(pAV)):
+        if pAV[row][0] == data_selected[0][0] and pAV[row][1] == data_selected[0][1] and \
+           pAV[row][2] == data_selected[0][2] and pAV[row][3] == data_selected[0][3] and \
+           pAV[row][4] == data_selected[0][4] and pAV[row][5] == data_selected[0][5]:
+            condicao = (tPVP['Produto'] == data_selected[0][0]) & (tPVP['Marca'] == data_selected[0][1]) & (
+                        tPVP['Método'] == data_selected[0][2]) & (tPVP['Quantidade'] == data_selected[0][3]) & (
+                        tPVP['Valor_Un'] + str(' R$') == data_selected[0][4]) & (
+                        tPVP['Valor_Total'] + str(' R$') == data_selected[0][5])
+            condicao2 = (tEP['Produto'] == data_selected[0][0]) & (tEP['Marca'] == data_selected[0][1]) & (
+                         tEP['Método'] == data_selected[0][2])
+            indice = tPVP.loc[condicao, :].index[-1]
+            indice2 = tEP.loc[condicao2, :].index[0]
+            quantAntes = tEP.at[indice2, 'Quantidade']
+            quantAdd = data_selected[0][3]
+            tEP.at[indice2, 'Quantidade'] = int(quantAntes) + int(quantAdd)
+            tPVP = tPVP.drop(int(indice))
+            pAV.pop(row)
+            break
+    j['tV_produtos'].Update(values=pAV)
+    xProv = data_selected[0][5].split(" ")
+    vTV -= float(xProv[0])
+    j["valorTotalV"].Update('+' + str(vTV) + ' R$')
+    return vTV, tPVP, pAV, tEP
 
 def janelaVender2(valorTotalVenda):
     colunaV = [

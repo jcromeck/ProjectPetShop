@@ -85,6 +85,8 @@ tEP = tabelas[6].copy()
 
 # Ids
 iDc = listarID(tabelas[4])
+if iDc == 1:
+    iDc = 10000
 iDv = listarID(tabelas[2])
 
 # Métodos
@@ -99,7 +101,7 @@ pAHV = []
 pC = listaProdutos(tabelas[1], 0)
 pV = listaProdutos(tabelas[1], 1)
 cEH, vEH = listarVC(tabelas[5]), listarVC(tabelas[3])
-pEd = listaProdutos(tabelas[1], 2)
+pEd = []
 
 # Valor Total
 vT = 0
@@ -127,6 +129,7 @@ while True:
 
         # Histórico
         if eventos == 'Histórico':
+            cEH, vEH = listarVC(tabelas[5]), listarVC(tabelas[3])
             janelaH = janelaHistorico(vEH, cEH)
 
         # Estatísticas
@@ -136,6 +139,7 @@ while True:
 
         # Editar Produto
         if eventos == 'Editar Produto':
+            pEd = listaProdutos(tabelas[1], 2)
             janelaEP = janelaEditProduto(pEd)
 
         # Estoque
@@ -182,20 +186,32 @@ while True:
 
         # Cadastro(Adicionar)
         if eventos == 'CadastroProduto':
-            janelaC = janelaCadastro(tabelas[0])
+            janelaC = janelaCadastro(mdV, mdC)
 
         # Excluir(Adicionar)
         if eventos == 'excluirTBEstoque':
-            vT, tP_CP, pA = ExC(tabelas, pA, janela, valores, vT, tP_CP)
+            data_selected = [pA[row] for row in valores['-TB-']]
+            if data_selected == []:
+                messagebox.showwarning("Erro ao Excluir",
+                                       'É preciso selecionar um produto na tabela antes de Excluir')
+            else:
+                vT, tP_CP, pA, tEP = ExC(tabelas, pA, janela, valores, vT, tP_CP, tEP, data_selected)
 
         # Finalizar(Adicionar)
         if eventos == 'Concluir':
-            tabelas = FinalizarAd(tP_CP, tabelas, path, iDc, data_em_texto, tEP)
-            pA = []
-            janelaA.close()
+            if pA != []:
+                tabelas = FinalizarAd(tP_CP, tabelas, path, iDc, data_em_texto, tEP)
+                iDc += 1
+                vT = 0
+                pA = []
+                janelaA.close()
+            else:
+                messagebox.showwarning("Erro ao Finalizar Compra",
+                                       "Selecione ao menos um produto")
 
         # Voltar(Adicionar)
         if eventos == 'voltarA':
+            vT = 0
             pA = []
             tEP = tabelas[6].copy()
             tP_CP = tabelas[4].copy()
@@ -211,7 +227,7 @@ while True:
 
         # Selecionar Produto(Vender)
         if eventos == 'tiposProdutos':
-            SePrV(tabelas, valores, janela)
+            SePrV(tabelas, valores, janela, tEP)
             # Feito
 
         # Carrinho(Vender)
@@ -236,7 +252,12 @@ while True:
 
         # Excluir Elemento Table(Vender)
         if eventos == 'excluirTBEstoqueV':
-            vTV, tP_VP, pAV = ExcV(tabelas, pAV, janela, valores, vTV, tP_VP)
+            data_selected = [pAV[row] for row in valores['tV_produtos']]
+            if data_selected == []:
+                messagebox.showwarning("Impossível Deletar Dado",
+                                       'Precisa Selecionar o Dado na Tabela antes de Deletar')
+            else:
+                vTV, tP_VP, pAV, tEP = ExcV(tabelas, pAV, janela, valores, vTV, tP_VP, tEP, data_selected)
 
         # Finalizar(Venda)
         if eventos == "FinalizarVenda":
@@ -249,6 +270,10 @@ while True:
 
         # Voltar(Vender)
         if eventos == 'voltarV':
+            pAV = []
+            vTV = 0
+            tEP = tabelas[6].copy()
+            tP_VP = tabelas[2].copy()
             janelaV.hide()
             janelaP.un_hide()
 
@@ -268,6 +293,8 @@ while True:
             if valores['comboPag'] != []:
                 tabelas = FinalizarVpt2(valores, tP_VP, tabelas, path, data_em_texto, iDv, tEP)
                 iDv += 1
+                pAV = []
+                vTV = 0
                 janelaV2.close()
                 janelaV.close()
             else:
@@ -319,10 +346,10 @@ while True:
 
         # Excluir(Histórico)
         if eventos == 'excluirH2':
-            if id_ExcluirV == None:
-                ExcluirCompraVenda(tabelas, valores, 'mc', id_ExcluirC, janela, path)
-            else:
-                ExcluirCompraVenda(tabelas, valores, 'mv', id_ExcluirV, janela, path)
+            if id_ExcluirV == None:  # Compra
+                ExcluirCompraVenda(tabelas, valores, 4, id_ExcluirC, janela, path)
+            else:  # Venda
+                ExcluirCompraVenda(tabelas, valores, 2, id_ExcluirV, janela, path)
             janelaH.close()
             vEH = listarVC(tabelas[3])
             cEH = listarVC(tabelas[5])
@@ -365,10 +392,30 @@ while True:
 
         # Ao finalizar retira um produto e adiciona outro
         if eventos == 'EfetuarCadastro':
-            tabelas = FinalizarEdit(tabelas, idxPCEP, valores, janela, path)
-            janelaEP.close()
-            pCEP = listaProdutos(tabelas[1], 2)
-            janelaEP = janelaEditProduto(pCEP)
+            current = valores['metodoVenda']
+            current2 = valores['metodoCompra']
+            if current != []:
+                if current2 != []:
+                    if valores["Prod"] == "" or valores["valorMVenda"] == "" or valores['MarcaProduto'] == "" or \
+                            valores["valorMCompra"] == "":
+                        messagebox.showwarning("Preencha Todos os campos",
+                                               'Preencha os campos corretamente')
+                    else:
+                        try:
+                            tabelas = FinalizarEdit(tabelas, idxPCEP, valores, janela, path)
+                            janelaEP.close()
+                            pCEP = listaProdutos(tabelas[1], 2)
+                            janelaEP = janelaEditProduto(pCEP)
+                        except ValueError as ve:
+                            messagebox.showwarning("Erro ao Cadastrar",
+                                                   'O campo Valor do Produto apenas aceita Números')
+                else:
+                    messagebox.showwarning("Preencha Todos os campos",
+                                           'Preencha o campo de Método de Compra')
+            else:
+                messagebox.showwarning("Preencha Todos os campos",
+                                       'Preencha o campo de Método de Venda')
+
 
     # Estoque
     if janela == janelaEst:
@@ -385,16 +432,33 @@ while True:
 
         # Confirmar novo Método de Venda(Cadastro)
         if eventos == 'novoMetodoVenda' and not valores['novoMetodoVendaInput'] == '':
-            tabelas = NewM(tabelas, valores, janela, path)
+            mdV, mdC, tabelas = NewM(tabelas, valores, janela, path, mdV, mdC)
             # Feito
 
         # Adicionar Produto Cadastro(Cadastro)
         if eventos == 'EfetuarCadastro':
-            tabelas, pC, nValid = EfCad(tabelas, valores, janela, path, pC)
-            if nValid == 1:
-                janelaA['comboProdutos'].Update(values=pC)
-                janelaC.hide()
-            # Feito
+            current = valores['metodoVenda']
+            current2 = valores['metodoCompra']
+            if current != []:
+                if current2 != []:
+                    if valores["Prod"] == "" or valores["valorMVenda"] == "" or valores['MarcaProduto'] == "" or \
+                       valores["valorMCompra"] == "":
+                        messagebox.showwarning("Preencha Todos os campos",
+                                               'Preencha os campos corretamente')
+                    else:
+                        try:
+                            tabelas, pC, tEP = EfCad(tabelas, valores, janela, path, tEP)
+                            janelaA['comboProdutos'].Update(values=pC)
+                            janelaC.hide()
+                        except ValueError as ve:
+                            messagebox.showwarning("Erro ao Cadastrar",
+                                                   'O campo Valor do Produto apenas aceita Números')
+                else:
+                    messagebox.showwarning("Preencha Todos os campos",
+                                           'Preencha o campo de Método de Compra')
+            else:
+                messagebox.showwarning("Preencha Todos os campos",
+                                       'Preencha o campo de Método de Venda')
 
         # Fechar Programa(Cadastro)
         if eventos == sg.WINDOW_CLOSED and janela == janelaC:

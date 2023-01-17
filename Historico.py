@@ -76,7 +76,7 @@ def janelaHistorico2(tabelas, strMetodo, idX):
     if strMetodo == 'Método de Venda':
         tabela = tabelas[2].copy()
     for index, rows in tabela.iterrows():
-        if rows.ID == idX:
+        if int(rows.ID) == idX:
             produto = rows.Produto
             marca = rows.Marca
             metodo = rows.Método
@@ -106,25 +106,18 @@ def ExcluirCompraVenda(tabelas, v, mvc, idX, j, path):
         if tabP[1] == str(n):
             tab = n
             break
-    int = 0
-    if mvc == 'mv':
-        int = 2
-        #Venda
-    if mvc == 'mc':
-        int = 4
-        # Compra
 
-    condicao = (tabelas[int]['ID'] == np.int64(idX))
-    indice = tabelas[int].loc[condicao, :].index[tab]
+    condicao = (tabelas[mvc]['ID'] == np.int64(idX))
+    indice = tabelas[mvc].loc[condicao, :].index[tab]
     print(type(indice))
-    quantidade = tabelas[int].at[indice, 'Quantidade']
-    vP = tabelas[int].at[indice, 'Valor_Total']
-    tabelas[int] = tabelas[int].drop(indice)  # atualiza a tabela do produto
+    quantidade = tabelas[mvc].at[indice, 'Quantidade']
+    vP = tabelas[mvc].at[indice, 'Valor_Total']
+    tabelas[mvc] = tabelas[mvc].drop(indice)  # atualiza a tabela do produto
 
-    condicao2 = (tabelas[int + 1]['ID'] == np.int64(idX))
-    indice2 = tabelas[int + 1].loc[condicao2, :].index[0]
-    atual = tabelas[int + 1].at[indice2, 'QItens']
-    valorTotal = tabelas[int + 1].at[indice2, 'Valor_Total']
+    condicao2 = (tabelas[mvc + 1]['ID'] == np.int64(idX))
+    indice2 = tabelas[mvc + 1].loc[condicao2, :].index[0]
+    atual = tabelas[mvc + 1].at[indice2, 'QItens']
+    valorTotal = tabelas[mvc + 1].at[indice2, 'Valor_Total']
 
     conf1, conf2, conf3, conf4 = 0, 0, 0, 0
     print(vP)

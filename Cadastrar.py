@@ -72,50 +72,27 @@ def NewM(tabelas, v, j, path, metodosdeVenda, metodosdeCompra):
     j['metodoCompra'].Update(values=metodosdeCompra)
     return metodosdeVenda, metodosdeCompra, tabelas
 # Efetuar Cadastro
-def EfCad(tabelas, v, j, path, pC):
-    current = v['metodoVenda']
-    current2 = v['metodoCompra']
-    if current != []:
-        if current2 != []:
-            if v["Prod"] == "" or v["valorMVenda"] == "" or v['MarcaProduto'] == "" or v["valorMCompra"] == "":
-                messagebox.showwarning("Preencha Todos os campos",
-                                       'Preencha os campos corretamente')
-                return tabelas, pC, 0
-            else:
-                try:
-                    if v['metodoCompra'] == 'Outro produto do estoque':
-                        outroProduto = 'Sim'
-                    else:
-                        outroProduto = 'Não'
-                    a = float(v['valorMVenda'])
-                    a = float(v['valorMCompra'])
-                    new_row = {'Produto': v["Prod"],
-                               'Marca': v["MarcaProduto"],
-                               'Valor_Venda': v['valorMVenda'],
-                               'Valor_Compra': v['valorMCompra'],
-                               'Método_Venda': j['metodoVenda'].get()[0],
-                               'Método_Compra': j["metodoCompra"].get()[0],
-                               'ReporEstoquepProd': outroProduto}
-                    tabelas[1] = tabelas[1].append(new_row, ignore_index=True)
-                    new_row = {
-                        'Produto': v['Prod'],
-                        'Marca': v['MarcaProduto'],
-                        'Método': j['metodoVenda'].get()[0],
-                        'Quantidade': 0}
-                    print(tabelas[1])
-                    tabelas[6] = tabelas[6].append(new_row, ignore_index=True)
-                    writerE(tabelas, path)
-                    pC = listaProdutos(tabelas[1], 0)
-                    return tabelas, pC, 1
-                except ValueError as ve:
-                    messagebox.showwarning("Erro ao Cadastrar",
-                                           'O campo Valor do Produto apenas aceita Números')
-                    return tabelas, pC, 0
+def EfCad(tabelas, v, j, path, tEP):
+        if v['metodoCompra'] == 'Outro produto do estoque':
+            outroProduto = 'Sim'
         else:
-            messagebox.showwarning("Preencha Todos os campos",
-                                   'Preencha o campo de Método de Compra')
-            return tabelas, pC, 0
-    else:
-        messagebox.showwarning("Preencha Todos os campos",
-                               'Preencha o campo de Método de Venda')
-        return tabelas, pC, 0
+            outroProduto = 'Não'
+        a = float(v['valorMVenda'])
+        a = float(v['valorMCompra'])
+        new_row = {'Produto': v["Prod"],
+                   'Marca': v["MarcaProduto"],
+                   'Valor_Venda': v['valorMVenda'],
+                   'Valor_Compra': v['valorMCompra'],
+                   'Método_Venda': j['metodoVenda'].get()[0],
+                   'Método_Compra': j["metodoCompra"].get()[0],
+                   'ReporEstoquepProd': outroProduto}
+        tabelas[1] = tabelas[1].append(new_row, ignore_index=True)
+        new_row = {'Produto': v['Prod'],
+                   'Marca': v['MarcaProduto'],
+                   'Método': j['metodoVenda'].get()[0],
+                   'Quantidade': 0}
+        tabelas[6] = tabelas[6].append(new_row, ignore_index=True)
+        tEP = tEP.append(new_row, ignore_index=True)
+        writerE(tabelas, path)
+        pC = listaProdutos(tabelas[1], 0)
+        return tabelas, pC, tEP
