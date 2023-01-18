@@ -54,6 +54,8 @@ def janelaAdicionar(tabelaP, produtosAdicionados):
     ]
     return sg.Window('Adicionar Produtos', icon='Arquivos/icon.ico', layout=layoutP, finalize=True)
 
+
+
 # Selecionar Produto
 def SePr(tabelas, v, janela, tEP):
     provisorio = v['comboProdutos'].split("-")

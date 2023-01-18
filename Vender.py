@@ -49,6 +49,24 @@ def janelaVender(produtosAVender, tabelaP):
     ]
     return sg.Window('Vender Produtos', icon='Arquivos/icon.ico', layout=layout, finalize=True)
 
+def janelaReporEstoque(tabelaP, produto):
+    pC = listaProdutos(tabelaP, 0)
+    colunaV = [
+        [sg.ReadFormButton('', key='voltarRP', image_filename='Arquivos/Retornar.png', border_width=0,
+                           image_subsample=1, image_size=(43, 43), button_color='black')],
+        [sg.Text('', size=(0, 3))]
+    ]
+    layout = [[sg.Column(colunaV)],
+              [sg.Combo(pC, size=(40, 20), font=(None, 18), key="comboRepor", readonly=True, auto_size_text=True)],
+              [sg.Text('Retirado do Produto acima')],
+              [sg.Input(key='retiradoRE')],
+              [sg.Text('Adicionado ao produto'),
+               sg.Text(f'{produto[1]}-{produto[2]}-{produto[3]}', key='prodAd')],
+              [sg.Input(key='adicionarRE')],
+              [sg.Button('Selecionar', key='selecRP')]
+              ]
+    return sg.Window('Repor Estoque do Item', icon='Arquivos/icon.ico', layout=layout,finalize=True)
+
 # Carrinho
 def CarVenda(t, v, j, pAV, vTV, tPVP, id, tEP):
     tepp = 0
@@ -60,6 +78,13 @@ def CarVenda(t, v, j, pAV, vTV, tPVP, id, tEP):
     indice = t[1].loc[condicao, :].index[0]
     produto = listaProdutosV1(t[1], indice, quant, id)
     produtoAdicionado = [produto[1], produto[2], produto[3], produto[4], produto[5] + " R$", produto[6] + " R$"]
+    if t[1].at[indice, 'Método_Compra'] != t[1].at[indice, 'Método_Venda']:
+        condicaoX = (tEP['Produto'] == provisorio[0]) & (tEP['Marca'] == provisorio[1]) & (
+                tEP['Método'] == provisorio[2])
+        indiceX = tEP.loc[condicaoX, :].index[0]
+        if int(tEP.at[indiceX,'Quantidade']) == 0:
+            janelaRP = janelaReporEstoque(t[1], produto)
+            return vTV, tPVP, pAV, tEP, janelaRP, produto
     pAV.append(produtoAdicionado)
     j['tV_produtos'].Update(values=pAV)
     vTV += float(produto[6])
@@ -84,7 +109,7 @@ def CarVenda(t, v, j, pAV, vTV, tPVP, id, tEP):
     tPVP = tPVP.append(new_row, ignore_index=True)
     j['estoqueTVModificado'].Update('')
     j['valorPTVModificado'].Update('')
-    return vTV, tPVP, pAV, tEP
+    return vTV, tPVP, pAV, tEP, None, None
 
 # Selecionar Combo
 def SePrV(tabelas, v, janela, tEP):
@@ -94,6 +119,7 @@ def SePrV(tabelas, v, janela, tEP):
     condicao2 = (tabelas[6]['Produto'] == provisorio[0]) & (tabelas[6]['Marca'] == provisorio[1]) & (
             tabelas[6]['Método'] == provisorio[2])
     somaV = tabelas[1].loc[condicao, :]
+    rep = tabelas[1].loc[condicao, :].index[0]
     somaV = somaV['Valor_Venda'].sum()
     try:
         somaE = tEP.loc[condicao2, :]
@@ -103,6 +129,10 @@ def SePrV(tabelas, v, janela, tEP):
     valorP = float(somaV)/float(len(tabelas[1].loc[condicao, :]))
     janela['estoqueTVModificado'].Update(estoqueP)
     janela['valorPTVModificado'].Update(valorP)
+    if estoqueP > 0 or tabelas[1].loc[rep, 'Método_Venda'] != tabelas[1].loc[rep, 'Método_Compra']:
+        return 1
+    else:
+        return 0
 
 # Excluir Elemento Table
 def ExcV(t, pAV, j, v, vTV, tPVP, tEP, data_selected):
@@ -183,6 +213,7 @@ def AtualizarDesconto(v, j, vTV):
 def FinalizarVpt2(v, tPVP, tabelas, path, data, id, tEProv):
     Qtotal = 0
     total = 0
+    tabelaProvcasoErro = tabelas.copy()
     # Atualizar P_Vendas
     tabelas[2] = tPVP
     # Atualizar Estoque
@@ -203,8 +234,10 @@ def FinalizarVpt2(v, tPVP, tabelas, path, data, id, tEProv):
         desconto = v['desconto']
     if int(desconto) <= total:
         total = total - int(desconto)
-    #else:
-        #Mensagem
+    else:
+        messagebox.showwarning("Erro ao Finalizar",
+                               'Desconto maior que o valor final')
+        return tabelaProvcasoErro
     # Atualizar Vendas
     new_row = {'ID': id,
                'QItens': Qtotal,

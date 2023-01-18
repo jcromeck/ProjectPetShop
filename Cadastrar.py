@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
-from tkinter import messagebox
-from Funções import writerE, listaProdutos, listaMetodos
+from Funções import writerE, listaProdutos
 
 # Janela
 def janelaCadastro(metodosdeVenda, metodosdeCompra):
@@ -75,10 +74,6 @@ def NewM(tabelas, v, j, path, metodosdeVenda, metodosdeCompra):
     return metodosdeVenda, metodosdeCompra, tabelas
 # Efetuar Cadastro
 def EfCad(tabelas, v, j, path, tEP):
-        if v['metodoCompra'] == 'Outro produto do estoque':
-            outroProduto = 'Sim'
-        else:
-            outroProduto = 'Não'
         a = float(v['valorMVenda'])
         a = float(v['valorMCompra'])
         new_row = {'Produto': v["Prod"],
@@ -86,8 +81,7 @@ def EfCad(tabelas, v, j, path, tEP):
                    'Valor_Venda': v['valorMVenda'],
                    'Valor_Compra': v['valorMCompra'],
                    'Método_Venda': j['metodoVenda'].get()[0],
-                   'Método_Compra': j["metodoCompra"].get()[0],
-                   'ReporEstoquepProd': outroProduto}
+                   'Método_Compra': j["metodoCompra"].get()[0]}
         tabelas[1] = tabelas[1].append(new_row, ignore_index=True)
         new_row = {'Produto': v['Prod'],
                    'Marca': v['MarcaProduto'],

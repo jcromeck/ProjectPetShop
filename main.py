@@ -74,7 +74,7 @@ def janelaInicial():
 
 janelaP = janelaInicial()
 janelaEst, janelaA, janelaV, janelaH, janelaE, janelaEP = None, None, None, None, None, None
-janelaC, janelaV2, janelaEPC = None, None, None
+janelaC, janelaV2, janelaEPC, janelaRP = None, None, None, None
 
 # Provisórios
 tPP = tabelas[1].copy()
@@ -91,7 +91,7 @@ iDv = listarID(tabelas[2])
 
 # Métodos
 mdV = listaMetodos(tabelas[0])
-mdC = ['Outro produto do estoque'] + mdV.copy()
+mdC = mdV.copy()
 
 # Produtos adicionados em table
 pA = []
@@ -107,7 +107,7 @@ pEd = []
 vT = 0
 vTV = 0
 
-vI = False
+eV = 0
 vBC = False
 editTBidx = 0
 editTBn = 0
@@ -228,7 +228,7 @@ while True:
 
         # Selecionar Produto(Vender)
         if eventos == 'tiposProdutos':
-            SePrV(tabelas, valores, janela, tEP)
+            eV = SePrV(tabelas, valores, janela, tEP)
             # Feito
 
         # Carrinho(Vender)
@@ -237,18 +237,24 @@ while True:
                 if not valores['quantidadeAdicionadaV'] == "":
                     try:
                         if int(valores['quantidadeAdicionadaV']) >= 0:
-                            vTV, tP_VP, pAV, tEP = CarVenda(tabelas, valores, janela, pAV, vTV, tP_VP, iDv, tEP)
+                            if eV == 1:
+                                vTV, tP_VP, pAV, tEP, janelaRP, pRE = CarVenda(tabelas, valores, janela, pAV, vTV,
+                                                                               tP_VP,
+                                                                               iDv, tEP)
+                            else:
+                                messagebox.showwarning("Erro ao Adicionar ao Carrinho",
+                                                       'Estoque Vazio')
                         else:
-                            messagebox.showwarning("Erro ao Adicionar",
+                            messagebox.showwarning("Erro ao Adicionar ao Carrinho",
                                                    'Valor abaixo de 0 não é aceito')
                     except ValueError as ve:
-                        messagebox.showwarning("Erro ao Adicionar",
+                        messagebox.showwarning("Erro ao Adicionar ao Carrinho",
                                                'O campo Quantidade apenas aceita Números')
                 else:
-                    messagebox.showwarning("Erro ao Adicionar",
+                    messagebox.showwarning("Erro ao Adicionar ao Carrinho",
                                            'Valor inválido no campo "Quantidade"')
             else:
-                messagebox.showwarning("Erro ao Adicionar",
+                messagebox.showwarning("Erro ao Adicionar ao Carrinho",
                                        'Selecione um produto para adicionar')
 
         # Excluir Elemento Table(Vender)
@@ -306,6 +312,47 @@ while True:
         if eventos == 'desconto':
             AtualizarDesconto(valores, janela, vTV)
             # Finalizado
+
+    # Repor Estoque
+    if janela == janelaRP:
+        # Voltar Repor Estoque
+        if eventos == 'voltarRP':
+            janelaRP.close()
+            janelaV.un_hide()
+
+        if eventos == 'selecRP':
+            if valores['comboRepor'] == '':
+                messagebox.showwarning("Erro ao Repor",
+                                       'Selecione um produto para repor outro produto')
+            else:
+                if valores['retiradoRE'] == "" or valores['adicionarRE'] == "":
+                    messagebox.showwarning("Erro ao Repor",
+                                           'Adicione um número nos campos')
+                else:
+                    try:
+                        if not int(valores['retiradoRE']) >= 0 and not int(valores['adicionarRE']) >= 0:
+                            messagebox.showwarning("Erro ao Repor",
+                                                   'Valor abaixo de 0 nos campos')
+                        else:
+                            prov = valores['comboRepor'].split('-')
+                            n_condicao = (tEP['Produto'] == prov[0]) & (tEP['Marca'] == prov[1]) & \
+                                         (tEP['Método'] == prov[2])
+                            iDX = tEP.loc[n_condicao, :].index[0]
+                            valorRepATirar = int(tEP.at[iDX, 'Quantidade'])
+                            valorRepTirar = int(valores['retiradoRE'])
+                            tirado = valorRepATirar - valorRepTirar
+                            tEP.at[iDX, 'Quantidade'] = tirado
+                            n_condicao = (tEP['Produto'] == pRE[1]) & (tEP['Marca'] == pRE[2]) & \
+                                         (tEP['Método'] == pRE[3])
+                            iDX = tEP.loc[n_condicao, :].index[0]
+                            valorRepATirar = int(tEP.at[iDX, 'Quantidade'])
+                            valorRepTirar = int(valores['adicionarRE'])
+                            tirado = valorRepATirar + valorRepTirar
+                            tEP.at[iDX, 'Quantidade'] = tirado
+                            janelaRP.close()
+                    except ValueError as ve:
+                        messagebox.showwarning("Erro ao Repor",
+                                               'Os campos apenas aceitam Números')
 
     # Histórico
     if janela == janelaH:
