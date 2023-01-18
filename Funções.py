@@ -93,47 +93,35 @@ def listarBusca(tabelas, id, quant, data, vT, janela):
     compraP = []
     if id == '' and quant == '' and data == '' and vT == '':
         for index, rows in tabelas[3].iterrows():
-            y = str(rows.Data).split(" ")
-            y = y[0].split("-")
-            dataS = y[2] + "/" + y[1] + "/" + y[0]
-            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            venda = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
             vendaP.append(venda)
         for index, rows in tabelas[5].iterrows():
-            y = str(rows.Data).split(" ")
-            y = y[0].split("-")
-            dataS = y[2] + "/" + y[1] + "/" + y[0]
-            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            compra = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
             compraP.append(compra)
             janela['-TBHV-'].Update(values=vendaP)
             janela['-TBHC-'].Update(values=compraP)
-            return
+        return
     for index, rows in tabelas[3].iterrows():
-        y = str(rows.Data).split(" ")
-        y = y[0].split("-")
-        dataS = y[2]+"/"+y[1]+"/"+y[0]
         if str(id) == str(rows.ID):
-            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            venda = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if str(quant) == str(rows.QItens):
-            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            venda = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if str(data) == str(rows.Data):
-            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            venda = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if str(vT) == str(rows.Valor_Total):
-            venda = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            venda = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if venda != []:
             vendaP.append(venda)
             venda = []
     for index, rows in tabelas[5].iterrows():
-        y = str(rows.Data).split(" ")
-        y = y[0].split("-")
-        dataS = y[2] + "/" + y[1] + "/" + y[0]
         if str(id) == str(rows.ID):
-            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            compra = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if str(quant) == str(rows.QItens):
-            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            compra = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if str(data) == str(rows.Data):
-            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            compra = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         if str(vT) == str(rows.Valor_Total):
-            compra = [str(rows.ID), dataS, str(rows.QItens), str(rows.Valor_Total)]
+            compra = [str(rows.ID), rows.Data, str(rows.QItens), str(rows.Valor_Total)]
         compraP.append(compra)
     janela['-TBHV-'].Update(values=vendaP)
     janela['-TBHC-'].Update(values=compraP)

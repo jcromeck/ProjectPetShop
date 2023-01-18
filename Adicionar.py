@@ -14,13 +14,11 @@ def janelaAdicionar(tabelaP, produtosAdicionados):
     ]
     layout11 = [
         [sg.Text('Estoque: ')],
-        [sg.Text(estoqueP,expand_x=True, justification='center',key='estoqueTModificado'),
-         sg.Input(key='estoqueModificado', size=(8, 2), visible=False)]
+        [sg.Text(estoqueP, expand_x=True, justification='center', key='estoqueTModificado')]
     ]
     layout12 = [
         [sg.Text('Valor: ')],
-        [sg.Text(valorP, expand_x=True, justification='center', key='valorPTModificado'),
-         sg.InputText(key='valorProdutoModificado', visible=False, size=(8, 2))]
+        [sg.Text(valorP, expand_x=True, justification='center', key='valorPTModificado')]
     ]
     layout1 = [
         [sg.Column(layout11), sg.Column(layout12)]
@@ -70,11 +68,9 @@ def SePr(tabelas, v, janela, tEP):
         estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
-    valorP = int(somaV)/len(tabelas[1].loc[condicao, :])
+    valorP = float(somaV)/float(len(tabelas[1].loc[condicao, :]))
     janela['estoqueTModificado'].Update(estoqueP)
     janela['valorPTModificado'].Update(valorP)
-    janela['estoqueModificado'].Update(estoqueP)
-    janela['valorProdutoModificado'].Update(valorP)
 
 # Carrinho Adicionar
 def CarAd(t, v, j, tP_CP, produtosAdicionados, valorTotal, id, tEP):
@@ -158,7 +154,8 @@ def FinalizarAd(tP_CP, tabelas, path, id, data, tEP):
     tabelas[6] = tEP.copy()
     condicao = tabelas[4]['ID'] == str(id)
     quant = tabelas[4].loc[condicao, ['Quantidade', 'Valor_Total']]
-    for num in range(len(quant)):
+    print(quant.first_valid_index())
+    for num in range(quant.index[-1] + 1):
         if quant.first_valid_index() <= num:
             Qtotal += int(quant['Quantidade'][num])
             total += float(quant['Valor_Total'][num])

@@ -205,6 +205,7 @@ while True:
                 vT = 0
                 pA = []
                 janelaA.close()
+                janelaP.un_hide()
             else:
                 messagebox.showwarning("Erro ao Finalizar Compra",
                                        "Selecione ao menos um produto")
@@ -232,7 +233,7 @@ while True:
 
         # Carrinho(Vender)
         if eventos == 'continuarVCompra':
-            if valores['tiposProdutos'] in pV:
+            if valores['tiposProdutos'] != '':
                 if not valores['quantidadeAdicionadaV'] == "":
                     try:
                         if int(valores['quantidadeAdicionadaV']) >= 0:
@@ -290,7 +291,7 @@ while True:
 
         # Finalizar Parte 2
         if eventos == 'concluirV':
-            if valores['comboPag'] != []:
+            if valores['comboPag'] != '':
                 tabelas = FinalizarVpt2(valores, tP_VP, tabelas, path, data_em_texto, iDv, tEP)
                 iDv += 1
                 pAV = []
@@ -299,7 +300,7 @@ while True:
                 janelaV.close()
             else:
                 messagebox.showwarning("Erro ao Finalizar",
-                                       "Selecione o Método de venda")
+                                       "Selecione o Método de Pagamento")
 
         # Atualizar Desconto (Finalizar Pt2)
         if eventos == 'desconto':
@@ -347,13 +348,14 @@ while True:
         # Excluir(Histórico)
         if eventos == 'excluirH2':
             if id_ExcluirV == None:  # Compra
-                ExcluirCompraVenda(tabelas, valores, 4, id_ExcluirC, janela, path)
+                metodo, tabelas = ExcluirCompraVenda(tabelas, valores, 4, id_ExcluirC, janela, path)
             else:  # Venda
-                ExcluirCompraVenda(tabelas, valores, 2, id_ExcluirV, janela, path)
+                metodo, tabelas = ExcluirCompraVenda(tabelas, valores, 2, id_ExcluirV, janela, path)
+            tEP = tabelas[6].copy
             janelaH.close()
             vEH = listarVC(tabelas[3])
             cEH = listarVC(tabelas[5])
-            janelaH = janelaHistorico(vEH, cEH)
+            janelaH = janelaHistorico2(tabelas, metodo, array[0])
 
     # Estatística
     if janela == janelaE:

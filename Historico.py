@@ -14,15 +14,16 @@ def janelaHistorico(vendasEfetuadasH, comprasEfetuadasH):
         [sg.Text('')],
         [sg.Text('Data: ')],
         [sg.Input(key='inputDT', size=(27, 1))],
-        [sg.Text('Valor Total: ')],
-        [sg.Input(key='inputVT', size=(27, 1))]
+        [sg.Text('Quantidade : ')],
+        [sg.Input(key='inputQI', size=(27, 1))]
+
     ]
     layout2 = [
         [sg.Text('')],
         [sg.Text('ID: ')],
         [sg.Input(key='inputIDH', size=(27, 1))],
-        [sg.Text('Quantidade : ')],
-        [sg.Input(key='inputQI', size=(27, 1))]
+        [sg.Text('Valor Total: ')],
+        [sg.Input(key='inputVT', size=(27, 1))]
     ]
     l4 = [
         [sg.Text('')],
@@ -106,48 +107,33 @@ def ExcluirCompraVenda(tabelas, v, mvc, idX, j, path):
         if tabP[1] == str(n):
             tab = n
             break
-
-    condicao = (tabelas[mvc]['ID'] == np.int64(idX))
+    condicao = (tabelas[mvc]['ID'] == idX)
     indice = tabelas[mvc].loc[condicao, :].index[tab]
-    print(type(indice))
     quantidade = tabelas[mvc].at[indice, 'Quantidade']
     vP = tabelas[mvc].at[indice, 'Valor_Total']
-    tabelas[mvc] = tabelas[mvc].drop(indice)  # atualiza a tabela do produto
-
     condicao2 = (tabelas[mvc + 1]['ID'] == np.int64(idX))
     indice2 = tabelas[mvc + 1].loc[condicao2, :].index[0]
     atual = tabelas[mvc + 1].at[indice2, 'QItens']
     valorTotal = tabelas[mvc + 1].at[indice2, 'Valor_Total']
+    condicao3 = (tabelas[6]['Produto'] == tabelas[mvc].loc[indice, 'Produto']) & \
+                (tabelas[6]['Marca'] == tabelas[mvc].loc[indice, 'Marca']) & \
+                (tabelas[6]['Método'] == tabelas[mvc].loc[indice, 'Método'])
+    indice3 = tabelas[6].loc[condicao3, :].index[0]
+    valorAnteriorEstoque = tabelas[6].at[indice3, 'Quantidade']
+    tabelas[mvc] = tabelas[mvc].drop(indice)  # atualiza a tabela do produto
 
     conf1, conf2, conf3, conf4 = 0, 0, 0, 0
-    print(vP)
-    print(quantidade)
-    print(atual)
-    print(valorTotal)
-    for n in range(10000):
-        if str(quantidade) == str(n):
-            quantidade = n
-            conf1 = 1
-        if str(vP) == str(n):
-            vP = n
-            conf2 = 1
-        if conf1 == 1 and conf2 == 1:
-            break
-    for n in range(100000):
-        if str(atual) == str(n):
-            atual = n
-            conf3 = 1
-        if str(valorTotal) == str(n):
-            valorTotal = n
-            conf4 = 1
-        if conf3 == 1 and conf4 == 1:
-            break
 
-    atual = atual - quantidade
-    valorTotal = valorTotal - vP
-    print(tabelas[int+1].at[indice2, 'QItens'])
-    print(atual)
-    tabelas[int+1].at[indice2, 'QItens'] = atual  # Mudando a quantidade de itens
-    tabelas[int+1].at[indice2, 'Valor_Total'] = valorTotal  # Mudando o valorTotal de itens
-    writerE(tabelas, path)
-    j['Tabgroup'].remove(tab)  # Tirando a tab
+    atual = int(atual) - int(quantidade)
+    valorTotal = float(valorTotal) - float(vP)
+    tabelas[mvc+1].at[indice2, 'QItens'] = str(atual)  # Mudando a quantidade de itens
+    tabelas[mvc+1].at[indice2, 'Valor_Total'] = str(valorTotal)  # Mudando o valorTotal de itens
+
+    if mvc == 2: # Venda
+        tabelas[6].at[indice3, 'Quantidade'] = int(valorAnteriorEstoque) + int(quantidade)
+        writerE(tabelas, path)
+        return 'Método de Venda', tabelas
+    else:
+        tabelas[6].at[indice3, 'Quantidade'] = int(valorAnteriorEstoque) - int(quantidade)
+        writerE(tabelas, path)
+        return 'Método de Compra', tabelas

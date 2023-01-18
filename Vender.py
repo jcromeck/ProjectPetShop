@@ -14,13 +14,11 @@ def janelaVender(produtosAVender, tabelaP):
     ]
     layoutC1 = [
         [sg.Text('Estoque: ')],
-        [sg.Text(estoqueP, expand_x=True, justification='center', key='estoqueTVModificado'),
-         sg.Input(key='estoqueVModificado', size=(8, 2), visible=False)]
+        [sg.Text(estoqueP, expand_x=True, justification='center', key='estoqueTVModificado')]
     ]
     layoutC2 = [
         [sg.Text('Valor: ')],
-        [sg.Text(valorP, expand_x=True, justification='center', key='valorPTVModificado'),
-         sg.InputText(key='valorProdutoVModificado', visible=False, size=(8, 2))]
+        [sg.Text(valorP, expand_x=True, justification='center', key='valorPTVModificado')]
     ]
     layoutC = [
         [sg.Column(layoutC1), sg.Column(layoutC2)]
@@ -102,11 +100,9 @@ def SePrV(tabelas, v, janela, tEP):
         estoqueP = somaE['Quantidade'].sum()
     except IndexError as ie:
         estoqueP = '0'
-    valorP = int(somaV)/len(tabelas[1].loc[condicao, :])
+    valorP = float(somaV)/float(len(tabelas[1].loc[condicao, :]))
     janela['estoqueTVModificado'].Update(estoqueP)
     janela['valorPTVModificado'].Update(valorP)
-    janela['estoqueVModificado'].Update(estoqueP)
-    janela['valorProdutoVModificado'].Update(valorP)
 
 # Excluir Elemento Table
 def ExcV(t, pAV, j, v, vTV, tPVP, tEP, data_selected):
@@ -193,9 +189,10 @@ def FinalizarVpt2(v, tPVP, tabelas, path, data, id, tEProv):
     tabelas[6] = tEProv
     condicao = (tabelas[2]['ID'] == str(id))
     quant = tabelas[2].loc[condicao, ['Valor_Total', 'Quantidade']]
-    for n in range(len(quant)):
-        Qtotal += int(quant['Quantidade'][n])
-        total += float(quant['Valor_Total'][n])
+    for num in range(quant.index[-1] + 1):
+        if quant.first_valid_index() <= num:
+            Qtotal += int(quant['Quantidade'][num])
+            total += float(quant['Valor_Total'][num])
     if v['frete'] == True:
         frete = 'Sim'
     else:

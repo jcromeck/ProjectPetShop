@@ -69,7 +69,9 @@ def NewM(tabelas, v, j, path, metodosdeVenda, metodosdeCompra):
     j["novoMetodoVendaInput"].Update(visible=False)
     j["novoMetodoVenda"].Update(visible=False)
     j['metodoVenda'].Update(values=metodosdeVenda)
+    j['metodoVenda'].Update(set_to_index=len(metodosdeVenda)-1)
     j['metodoCompra'].Update(values=metodosdeCompra)
+    j['metodoCompra'].Update(set_to_index=len(metodosdeCompra)-1)
     return metodosdeVenda, metodosdeCompra, tabelas
 # Efetuar Cadastro
 def EfCad(tabelas, v, j, path, tEP):
